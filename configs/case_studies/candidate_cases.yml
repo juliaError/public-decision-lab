@@ -1,0 +1,136 @@
+cases:
+  - case_id: cn_henan_zhengzhou_flood_2021
+    event_name: "Henan / Zhengzhou extreme rainfall and flooding"
+    country_or_region: "China, Henan Province"
+    hazard_type: flood
+    event_period: "2021-07"
+    status: candidate
+    why_candidate: "Dense urban exposure, transport disruption, official investigation material, and potential relevance for China-facing public decision support."
+    capabilities_to_test:
+      - urban_exposure_screening
+      - transport_disruption_review
+      - priority_admin_area_review
+      - report_uncertainty_language
+    source_leads:
+      - title: "Investigation report on the Zhengzhou 7.20 extreme rainfall disaster"
+        publisher: "State Council investigation team / official public release"
+        url: "https://www.gov.cn/xinwen/2022-01/21/content_5669723.htm"
+        source_role: validation_and_context
+        verification_status: to_verify
+      - title: "Local and national emergency response reporting"
+        publisher: "Government and reputable news archives"
+        url: null
+        source_role: response_timeline
+        verification_status: to_collect
+    data_needs:
+      - aoi
+      - flood_extent_or_rainfall_proxy
+      - admin_boundaries
+      - population_grid
+      - roads
+      - hospitals_clinics_schools_shelters
+    cautions:
+      - "Do not infer individual victims or confirmed damage from exposure outputs."
+      - "Urban flooding and underground infrastructure disruption may not be captured by polygon exposure alone."
+
+  - case_id: cn_haihe_doksuri_flood_2023
+    event_name: "Beijing-Tianjin-Hebei / Haihe Basin flooding after Typhoon Doksuri"
+    country_or_region: "China, Beijing-Tianjin-Hebei / Haihe Basin"
+    hazard_type: flood
+    event_period: "2023-07 to 2023-08"
+    status: candidate
+    why_candidate: "Large rainfall footprint, evacuations, road and access issues, and basin-scale coordination questions."
+    capabilities_to_test:
+      - multi_admin_area_prioritization
+      - road_access_screening
+      - evacuation_and_shelter_context
+      - cloud_run_reproducibility
+    source_leads:
+      - title: "Emergency management and water-resources reporting on Doksuri-related flooding"
+        publisher: "Ministry of Emergency Management / Ministry of Water Resources / local governments"
+        url: null
+        source_role: response_timeline
+        verification_status: to_collect
+      - title: "Public situation reports and reputable news archives"
+        publisher: "Government and reputable media sources"
+        url: null
+        source_role: validation_and_context
+        verification_status: to_collect
+    data_needs:
+      - aoi
+      - flood_extent_or_warning_footprint
+      - admin_boundaries
+      - population_grid
+      - roads
+      - facilities
+    cautions:
+      - "Official response focus areas are not perfect ground truth."
+      - "Basin-scale hydrology may require better hazard modeling than v0.1 supports."
+
+  - case_id: pk_floods_2022
+    event_name: "Pakistan floods"
+    country_or_region: "Pakistan"
+    hazard_type: flood
+    event_period: "2022"
+    status: candidate
+    why_candidate: "Large-scale population exposure, humanitarian reporting, and likely availability of flood extent products."
+    capabilities_to_test:
+      - large_scale_population_exposure
+      - admin_level_priority_ranking
+      - humanitarian_report_comparison
+      - uncertainty_reporting
+    source_leads:
+      - title: "Pakistan floods situation reports"
+        publisher: "Government of Pakistan / UN OCHA and humanitarian partners"
+        url: null
+        source_role: validation_and_context
+        verification_status: to_collect
+      - title: "Satellite-derived flood products"
+        publisher: "Copernicus, NASA, UNOSAT, or other public rapid-mapping sources"
+        url: null
+        source_role: hazard_input_or_validation
+        verification_status: to_collect
+    data_needs:
+      - aoi
+      - flood_extent
+      - admin_boundaries
+      - population_grid
+      - roads
+      - facilities
+    cautions:
+      - "Large spatial scale may hide local needs."
+      - "Different agencies may use different administrative units and reporting definitions."
+
+  - case_id: ly_derna_flood_2023
+    event_name: "Derna / Libya flooding"
+    country_or_region: "Libya, Derna area"
+    hazard_type: flood
+    event_period: "2023-09"
+    status: candidate
+    why_candidate: "High-consequence flash-flood context useful for testing limitations, validation needs, and ethical caution."
+    capabilities_to_test:
+      - localized_high_impact_exposure
+      - infrastructure_and_facility_screening
+      - validation_gate_design
+      - limits_of_retrospective_nowcasting
+    source_leads:
+      - title: "Copernicus EMS or related flood activation material"
+        publisher: "Copernicus Emergency Management Service"
+        url: null
+        source_role: hazard_input_or_validation
+        verification_status: to_collect
+      - title: "Humanitarian updates"
+        publisher: "UN OCHA, IFRC, or other humanitarian sources"
+        url: null
+        source_role: validation_and_context
+        verification_status: to_collect
+    data_needs:
+      - aoi
+      - flood_extent
+      - admin_or_neighborhood_units
+      - population_grid
+      - roads
+      - facilities
+    cautions:
+      - "Dam failure and flash-flood dynamics may not be represented by simple flood polygons alone."
+      - "Sensitive location and casualty information must be handled carefully."
