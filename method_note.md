@@ -11,7 +11,7 @@ This initial skeleton uses a simple intersection-based exposure screen.
 5. Mark an infrastructure feature as potentially affected when it intersects both the AOI and the hazard polygon.
 6. If a population raster is provided, include raster cells whose centers fall inside the hazard extent and sum their values as estimated exposed population.
 7. Aggregate potentially affected roads, facilities, and estimated exposed population by administrative unit.
-8. Write machine-readable outputs, a static HTML map, and a short Markdown report.
+8. Write machine-readable outputs, an interactive Folium HTML map, and a Markdown report.
 
 ## Interpretation
 

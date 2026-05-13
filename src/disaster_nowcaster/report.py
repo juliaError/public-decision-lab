@@ -45,13 +45,13 @@ def write_outputs(
     write_feature_collection(paths["affected_facilities"], result.affected_facilities)
     write_map_html(paths["map"], aoi=aoi, hazard=hazard, admin=admin, result=result)
     _write_metadata(paths["metadata"], result, config)
-    _write_report(paths["report"], result, paths)
+    _write_report(paths["report"], result, paths, config)
 
     return list(paths.values())
 
 
-def render_report(result: ExposureResult, paths: dict[str, Path]) -> str:
-    """Render a one-page Markdown exposure report."""
+def render_report(result: ExposureResult, paths: dict[str, Path], config: RunConfig) -> str:
+    """Render a Markdown exposure report for local decision-support review."""
 
     return "\n".join(
         [
@@ -60,6 +60,26 @@ def render_report(result: ExposureResult, paths: dict[str, Path]) -> str:
             "## Summary",
             "",
             "This report provides an intersection-based exposure screening from local input files. These outputs are exposure estimates, not confirmed damage, casualties, service disruption, or official response priorities.",
+            "",
+            "## Event Metadata",
+            "",
+            f"- Generated output folder: `{config.output}`",
+            "- Event type: local static exposure screening",
+            "- Hazard type: user-supplied hazard extent",
+            "- Validation required: yes",
+            "- Claims limit: exposure estimates only; no confirmed damage or official priority decisions.",
+            f"- Metadata file: `{paths['metadata'].name}`",
+            "",
+            "## Data Sources",
+            "",
+            f"- AOI: `{config.aoi}`",
+            f"- Hazard extent: `{config.hazard}`",
+            f"- Roads: `{config.roads}`",
+            f"- Facilities: `{config.facilities}`",
+            f"- Administrative units: `{config.admin}`",
+            f"- Population raster: `{config.population}`" if config.population else "- Population raster: not provided",
+            "",
+            "All inputs are local user-supplied files. This run does not download WorldPop, OSM, satellite, or hazard data automatically.",
             "",
             "## Exposure Estimates",
             "",
@@ -75,11 +95,18 @@ def render_report(result: ExposureResult, paths: dict[str, Path]) -> str:
             f"- Facilities by type: {_render_facility_type_counts(result.affected_facilities_by_type)}",
             _render_population_summary_line(result),
             "",
-            "## Priority Areas",
+            "## Affected Infrastructure",
             "",
-            "The demo priority score is a transparent sorting aid: potentially affected roads plus facilities located within the hazard extent. It is not an official allocation decision.",
+            f"- Potentially affected road features: {result.affected_road_count}",
+            f"- Potentially affected road length: {_format_number(result.affected_road_length)} input CRS units",
+            f"- Facilities located within the hazard extent: {result.affected_facility_count}",
+            f"- Facility type counts: {_render_facility_type_counts(result.affected_facilities_by_type)}",
             "",
-            _render_priority_table(result),
+            "## Top 10 Priority Admin Units",
+            "",
+            "Priority Areas are listed for review using the demo priority score. The score is a transparent sorting aid: potentially affected roads plus facilities located within the hazard extent. It is not an official allocation decision.",
+            "",
+            _render_priority_table(result, limit=10),
             "",
             "## Interpretation",
             "",
@@ -92,7 +119,7 @@ def render_report(result: ExposureResult, paths: dict[str, Path]) -> str:
             f"- Priority areas: `{paths['priority_areas'].name}`",
             f"- Potentially affected roads: `{paths['affected_roads'].name}`",
             f"- Facilities located within the hazard extent: `{paths['affected_facilities'].name}`",
-            f"- Static map: `{paths['map'].name}`",
+            f"- Interactive map: `{paths['map'].name}`",
             f"- Metadata: `{paths['metadata'].name}`",
             "",
             "## Uncertainty Note",
@@ -255,16 +282,19 @@ def _write_metadata(path: Path, result: ExposureResult, config: RunConfig) -> No
         file.write("\n")
 
 
-def _write_report(path: Path, result: ExposureResult, paths: dict[str, Path]) -> None:
-    path.write_text(render_report(result, paths), encoding="utf-8")
+def _write_report(
+    path: Path, result: ExposureResult, paths: dict[str, Path], config: RunConfig
+) -> None:
+    path.write_text(render_report(result, paths, config), encoding="utf-8")
 
 
-def _render_priority_table(result: ExposureResult) -> str:
+def _render_priority_table(result: ExposureResult, limit: int | None = None) -> str:
     lines = [
         "| Rank | Administrative unit | Estimated exposed population | Potentially affected roads | Facilities within hazard extent | Demo score |",
         "| --- | --- | ---: | ---: | ---: | ---: |",
     ]
-    for row in result.priority_areas:
+    rows = result.priority_areas[:limit] if limit else result.priority_areas
+    for row in rows:
         lines.append(
             "| {rank} | {name} | {population} | {roads} | {facilities} | {score} |".format(
                 rank=row["demo_rank"],

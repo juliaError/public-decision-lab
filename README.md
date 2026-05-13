@@ -66,7 +66,7 @@ The demo writes an event output folder such as `outputs/demo_event/` containing:
 - `priority_areas.csv`: admin-level demo ranking with exposed infrastructure counts and estimated exposed population;
 - `affected_roads.geojson`: road features that intersect both AOI and hazard polygon, with input-CRS hazard-intersection length;
 - `affected_facilities.geojson`: supported hospital, clinic, school, and shelter features that intersect both AOI and hazard polygon;
-- `map.html`: self-contained static HTML/SVG demo map;
+- `map.html`: interactive Folium/Leaflet map with AOI, hazard, affected facilities, and admin priority choropleth layers;
 - `metadata.json`: input paths, method summary, and claims limit;
 - `report.md`: a short human-readable Markdown report.
 
