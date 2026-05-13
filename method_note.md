@@ -44,6 +44,12 @@ This score is only a transparent sorting aid for review. It is not an official a
 - No official priority scoring.
 - No validated damage or service-disruption claims.
 
+## Adapter Contract
+
+Adapters are designed as a thin preparation layer before the local-file pipeline. An adapter should return a standardized local artifact path and metadata documenting source name, terms, resolution, update frequency, source type, limitations, and whether data were automatically downloaded.
+
+The current implementation includes only a local hazard adapter that wraps an existing local hazard GeoJSON. It does not download NASA LANCE, Copernicus GFM, GDACS, WorldPop, OSM, or satellite products.
+
 ## Priority Scoring Framework
 
 The scoring framework is grounded in established disaster-risk and humanitarian-analysis concepts: hazard, exposure, vulnerability, capacity, lack of coping capacity, intersectoral needs severity, impact-based forecasting, anticipatory-action trigger review, community lifelines, and multi-criteria decision analysis.

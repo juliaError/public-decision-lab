@@ -62,3 +62,5 @@ Every future adapter should document:
 - update frequency;
 - known limitations;
 - whether the data are observed, modeled, crowdsourced, or manually supplied.
+
+Adapter metadata fields are defined in `docs/adapter_contract.md`. The current adapter implementation is local-only and does not automatically download external disaster data.

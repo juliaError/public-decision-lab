@@ -99,6 +99,18 @@ Scores are decision-support indices, not official allocation rules. Default weig
 
 The first scoring framework supports separate score families for need severity, lifeline disruption, rescue review, cash-transfer support, health support, and road repair review. Score weights are configurable, indicator directions are explicit, and missing optional indicators are flagged while available weights are renormalized. Feasibility is reported separately from need so easier delivery does not silently redefine humanitarian severity. The design rationale is documented in `priority_model_design.md`.
 
+## Adapter Contract
+
+The repository includes an adapter contract for future data-source integrations. Adapters prepare standardized local artifacts plus source metadata; the core pipeline still consumes local files.
+
+Current adapter support is intentionally local-only:
+
+- `LocalHazardAdapter` wraps an existing local hazard GeoJSON.
+- No NASA LANCE, Copernicus GFM, GDACS, WorldPop, OSM, or satellite-data API is called automatically.
+- Adapter outputs remain inputs for exposure screening, not confirmed damage or official priority information.
+
+See `docs/adapter_contract.md`.
+
 ## Tests
 
 ```bash
