@@ -11,6 +11,7 @@ from disaster_nowcaster.adapters import (
 )
 from disaster_nowcaster.admin import load_admin_units
 from disaster_nowcaster.aoi import load_aoi
+from disaster_nowcaster.cases import load_case_manifest, scaffold_case_directory
 from disaster_nowcaster.exposure import compute_exposure
 from disaster_nowcaster.hazard import load_hazard
 from disaster_nowcaster.infrastructure import load_infrastructure
@@ -80,7 +81,68 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_local_raster_hazard_arguments(copernicus_parser)
     copernicus_parser.set_defaults(func=prepare_copernicus_gfm_local_command)
+
+    case_parser = subparsers.add_parser(
+        "case",
+        help="Validate or scaffold retrospective case-study materials.",
+    )
+    case_subparsers = case_parser.add_subparsers(
+        dest="case_command",
+        required=True,
+        help="Case-study helper command to run.",
+    )
+
+    validate_parser = case_subparsers.add_parser(
+        "validate",
+        help="Validate a case-study manifest YAML file.",
+    )
+    validate_parser.add_argument(
+        "--manifest",
+        required=True,
+        type=Path,
+        help="Case-study manifest YAML file.",
+    )
+    validate_parser.set_defaults(func=validate_case_command)
+
+    scaffold_parser = case_subparsers.add_parser(
+        "scaffold",
+        help="Create standard case-study documentation files.",
+    )
+    scaffold_parser.add_argument("--case-id", required=True, help="Case identifier.")
+    scaffold_parser.add_argument(
+        "--output",
+        required=True,
+        type=Path,
+        help="Output directory for case-study markdown files.",
+    )
+    scaffold_parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Allow replacing existing scaffold files.",
+    )
+    scaffold_parser.set_defaults(func=scaffold_case_command)
     return parser
+
+
+def validate_case_command(args: argparse.Namespace) -> int:
+    """Validate one case-study manifest."""
+
+    manifest = load_case_manifest(args.manifest)
+    case_id = manifest["case"]["case_id"]
+    print(f"Case manifest is valid: {case_id}")
+    return 0
+
+
+def scaffold_case_command(args: argparse.Namespace) -> int:
+    """Create standard case-study markdown files."""
+
+    written = scaffold_case_directory(
+        args.case_id,
+        args.output,
+        overwrite=args.overwrite,
+    )
+    print(f"Wrote {len(written)} case-study files to {args.output}")
+    return 0
 
 
 def _add_local_raster_hazard_arguments(parser: argparse.ArgumentParser) -> None:
