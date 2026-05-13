@@ -1,0 +1,21 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {"id": "admin_west", "name": "Synthetic West District"},
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[0, 0], [5, 0], [5, 10], [0, 10], [0, 0]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {"id": "admin_east", "name": "Synthetic East District"},
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[5, 0], [10, 0], [10, 10], [5, 10], [5, 0]]]
+      }
+    }
+  ]
+}
