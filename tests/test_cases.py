@@ -2,10 +2,13 @@ import pytest
 import yaml
 
 from disaster_nowcaster.cases import (
+    CASE_REQUIRED_OUTPUT_FILES,
     CaseManifestError,
+    check_case_output_files,
     load_case_manifest,
     scaffold_case_directory,
     validate_case_manifest,
+    validate_case_output_files,
 )
 from disaster_nowcaster.cli import main
 
@@ -47,6 +50,14 @@ def test_case_manifest_rejects_invalid_status():
     payload["case"]["status"] = "validated_truth"
 
     with pytest.raises(CaseManifestError, match="status"):
+        validate_case_manifest(payload)
+
+
+def test_case_manifest_rejects_invalid_stage_status():
+    payload = _valid_case_manifest()
+    payload["case"]["run_stages"][0]["stage_status"] = "truth_complete"
+
+    with pytest.raises(CaseManifestError, match="stage_status"):
         validate_case_manifest(payload)
 
 
@@ -106,6 +117,47 @@ def test_cli_case_scaffold(tmp_path):
 
     assert exit_code == 0
     assert (output_dir / "sources.md").exists()
+
+
+def test_check_case_output_files_reports_missing_files(tmp_path):
+    output_dir = tmp_path / "outputs"
+    output_dir.mkdir()
+    (output_dir / "report.md").write_text("# Report\n", encoding="utf-8")
+
+    checks = check_case_output_files(output_dir)
+
+    assert checks["report.md"] is True
+    assert checks["metadata.json"] is False
+
+
+def test_validate_case_output_files_passes_for_core_outputs(tmp_path):
+    output_dir = tmp_path / "outputs"
+    output_dir.mkdir()
+    for filename in CASE_REQUIRED_OUTPUT_FILES:
+        (output_dir / filename).write_text("placeholder\n", encoding="utf-8")
+
+    checks = validate_case_output_files(output_dir)
+
+    assert all(checks.values())
+
+
+def test_validate_case_output_files_rejects_missing_files(tmp_path):
+    output_dir = tmp_path / "outputs"
+    output_dir.mkdir()
+
+    with pytest.raises(CaseManifestError, match="report.md"):
+        validate_case_output_files(output_dir)
+
+
+def test_cli_case_check_outputs(tmp_path):
+    output_dir = tmp_path / "outputs"
+    output_dir.mkdir()
+    for filename in CASE_REQUIRED_OUTPUT_FILES:
+        (output_dir / filename).write_text("placeholder\n", encoding="utf-8")
+
+    exit_code = main(["case", "check-outputs", "--output", str(output_dir)])
+
+    assert exit_code == 0
 
 
 def _valid_case_manifest():

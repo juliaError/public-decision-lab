@@ -72,7 +72,7 @@ cases:
     country_or_region: "Pakistan"
     hazard_type: flood
     event_period: "2022"
-    status: candidate
+    status: source_review
     why_candidate: "Large-scale population exposure, humanitarian reporting, and likely availability of flood extent products."
     capabilities_to_test:
       - large_scale_population_exposure
@@ -82,14 +82,19 @@ cases:
     source_leads:
       - title: "Pakistan floods situation reports"
         publisher: "Government of Pakistan / UN OCHA and humanitarian partners"
-        url: null
+        url: "https://pakistan.un.org/en/197499-2022-pakistan-floods-response-plan-frp"
         source_role: validation_and_context
-        verification_status: to_collect
+        verification_status: verified_source_lead
       - title: "Satellite-derived flood products"
         publisher: "Copernicus, NASA, UNOSAT, or other public rapid-mapping sources"
-        url: null
+        url: "https://data.humdata.org/dataset/f858d69f-481b-49b6-bcfa-1c2dc74dd346"
         source_role: hazard_input_or_validation
-        verification_status: to_collect
+        verification_status: verified_source_lead
+      - title: "Khairpur Nathan Shah / Sindh focused case package"
+        publisher: "Disaster Impact Nowcaster case manifest"
+        url: "configs/case_studies/pk_sindh_khairpur_flood_2022.yml"
+        source_role: case_manifest
+        verification_status: created
     data_needs:
       - aoi
       - flood_extent

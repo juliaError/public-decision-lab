@@ -1,0 +1,134 @@
+case:
+  case_id: pk_sindh_khairpur_flood_2022
+  event_name: "Pakistan floods, Khairpur Nathan Shah / Sindh satellite-detected water extent"
+  hazard_type: flood
+  country_or_region: "Pakistan, Sindh Province, Khairpur Nathan Shah / Dadu area"
+  event_period: "2022-08 to 2022-09"
+  status: source_review
+  evaluation_mode: retrospective_replay
+  source_inventory:
+    - source_id: unosat_hdx_khairpur_water_extent_20220907
+      title: "Satellite detected water extent in Khairpur Nathan Shah Town, Sindh Province, Pakistan as of 31 August 2022"
+      publisher: "United Nations Satellite Centre (UNOSAT) / Humanitarian Data Exchange"
+      url_or_path: "https://data.humdata.org/dataset/f858d69f-481b-49b6-bcfa-1c2dc74dd346"
+      access_date: "2026-05-14"
+      availability: post_event
+      role: input
+      notes: "Machine-readable source exists, but the zipped shapefile is about 286 MB and must stay outside the repository. UNOSAT labels the analysis preliminary and not field validated."
+    - source_id: unosat_khairpur_map_pdf_20220905
+      title: "UNOSAT map: Satellite detected water extent in Khairpur Nathan Shah Town"
+      publisher: "United Nations Satellite Centre (UNOSAT)"
+      url_or_path: "https://unosat.org/static/unosat_filesystem/3349/UNOSAT_A3_Natural_Landscape_FL20220808PAK_Sindh_31Aug2022_v2.pdf"
+      access_date: "2026-05-14"
+      availability: post_event
+      role: validation
+      notes: "Map product reports observed floodwater, map extent, and preliminary exposed-population context. It is validation/context material, not a substitute for the vector hazard file."
+    - source_id: unosat_population_exposure_xlsx_20220907
+      title: "UNOSAT Population Exposure FL20220808PAK 31 Aug 2022 Sindh"
+      publisher: "United Nations Satellite Centre (UNOSAT)"
+      url_or_path: "https://unosat.org/static/unosat_filesystem/3349/UNOSAT_Population_Exposure_FL20220808PAK_31Aug2022_Sindh.xlsx"
+      access_date: "2026-05-14"
+      availability: post_event
+      role: validation
+      notes: "Small Excel table with district-level analyzed area, flood-water extent, and potentially exposed population. It is not a population raster input for the pipeline."
+    - source_id: un_pakistan_flood_response_plan_20220902
+      title: "2022 Pakistan Floods Response Plan"
+      publisher: "United Nations in Pakistan"
+      url_or_path: "https://pakistan.un.org/en/197499-2022-pakistan-floods-response-plan-frp"
+      access_date: "2026-05-14"
+      availability: during_event
+      role: response_timeline
+      notes: "Response planning context available near the event period. Use only for timeline and response context, not as hazard geometry."
+    - source_id: unicef_pakistan_sitrep_20220909
+      title: "Pakistan Humanitarian Situation Report No. 2 (Floods), September 2022"
+      publisher: "UNICEF"
+      url_or_path: "https://www.unicef.org/documents/pakistan-humanitarian-situation-report-no2-floods-september-2022"
+      access_date: "2026-05-14"
+      availability: during_event
+      role: response_timeline
+      notes: "Humanitarian situation context around 2022-09-09. Use for response and needs context, not as model validation truth."
+    - source_id: hot_osm_pakistan_flood_2022
+      title: "Pakistan Flood 2022"
+      publisher: "OpenStreetMap Wiki / Humanitarian OpenStreetMap Team context"
+      url_or_path: "https://wiki.openstreetmap.org/wiki/Pakistan_Flood_2022"
+      access_date: "2026-05-14"
+      availability: during_event
+      role: context
+      notes: "Documents HOT/OSM mapping response context. OSM-derived roads/facilities must be downloaded separately and completeness must be checked."
+  external_data_resources:
+    hazard_shapefile_zip:
+      source_id: unosat_hdx_khairpur_water_extent_20220907
+      download_url: "https://unosat.org/static/unosat_filesystem/3349/FL20220808PAK_SHP.zip"
+      size_bytes: 285815544
+      repository_policy: "Do not commit. Download to data/external or object storage, then extract and convert the flood-water polygon layer to GeoJSON."
+    population_exposure_table:
+      source_id: unosat_population_exposure_xlsx_20220907
+      download_url: "https://unosat.org/static/unosat_filesystem/3349/UNOSAT_Population_Exposure_FL20220808PAK_31Aug2022_Sindh.xlsx"
+      size_bytes: 12900
+      repository_policy: "Do not treat as a population raster. Use for diagnostic comparison only."
+  run_stages:
+    - stage: T0_baseline
+      data_cutoff: "2022-08-30T23:59:59+05:00"
+      stage_status: planned
+      input_paths:
+        aoi: null
+        hazard: null
+        admin: null
+        population: null
+        roads: null
+        facilities: null
+      uncertainty_notes:
+        - "Baseline layers are not yet prepared locally."
+        - "OSM completeness and admin-boundary compatibility must be checked before exposure screening."
+    - stage: T1_early_hazard
+      data_cutoff: "2022-09-02T23:59:59+05:00"
+      stage_status: data_gap
+      input_paths:
+        aoi: "data/external/pk_sindh_khairpur_flood_2022/aoi.geojson"
+        hazard: null
+        admin: "data/external/pk_sindh_khairpur_flood_2022/admin.geojson"
+        population: null
+        roads: "data/external/pk_sindh_khairpur_flood_2022/roads.geojson"
+        facilities: "data/external/pk_sindh_khairpur_flood_2022/facilities.geojson"
+      uncertainty_notes:
+        - "No local early hazard GeoJSON has been prepared yet."
+        - "Do not use response-plan affected districts as a flood polygon."
+    - stage: T2_updated_hazard
+      data_cutoff: "2022-09-07T23:59:59+05:00"
+      stage_status: source_review
+      input_paths:
+        aoi: "data/external/pk_sindh_khairpur_flood_2022/aoi.geojson"
+        hazard: "data/external/pk_sindh_khairpur_flood_2022/hazard/unosat_khairpur_31aug2022_floodwater.geojson"
+        admin: "data/external/pk_sindh_khairpur_flood_2022/admin.geojson"
+        population: null
+        roads: "data/external/pk_sindh_khairpur_flood_2022/roads.geojson"
+        facilities: "data/external/pk_sindh_khairpur_flood_2022/facilities.geojson"
+      uncertainty_notes:
+        - "The UNOSAT vector package must be downloaded outside the repository and converted before this run can execute."
+        - "UNOSAT says the flood analysis is preliminary and not field validated."
+        - "Without a local population raster, v0.1 pipeline population exposure will be unavailable; UNOSAT's exposure table can be used only for diagnostic comparison."
+    - stage: T3_diagnostic
+      data_cutoff: "2022-09-20T23:59:59+05:00"
+      stage_status: source_review
+      input_paths:
+        aoi: "data/external/pk_sindh_khairpur_flood_2022/aoi.geojson"
+        hazard: "data/external/pk_sindh_khairpur_flood_2022/hazard/unosat_khairpur_31aug2022_floodwater.geojson"
+        admin: "data/external/pk_sindh_khairpur_flood_2022/admin.geojson"
+        population: null
+        roads: "data/external/pk_sindh_khairpur_flood_2022/roads.geojson"
+        facilities: "data/external/pk_sindh_khairpur_flood_2022/facilities.geojson"
+      uncertainty_notes:
+        - "Post-event situation reports can diagnose missed needs or weak outputs, but must not be presented as information available in the T1/T2 replay."
+        - "This diagnostic stage is not validation of confirmed damage."
+  expected_outputs:
+    - report.md
+    - impact_summary.csv
+    - priority_areas.csv
+    - affected_facilities.geojson
+    - affected_roads.geojson
+    - map.html
+    - metadata.json
+  data_policy:
+    raw_large_data: "Store outside the repository."
+    sensitive_data: "Do not include individual-level reports or precise sensitive locations."
+    claims_limit: "Decision-support exposure screening only; not confirmed damage or official allocation."

@@ -19,7 +19,25 @@ CASE_STATUSES = (
     "iteration_needed",
     "report_ready",
 )
+CASE_STAGE_STATUSES = (
+    "planned",
+    "source_review",
+    "data_gap",
+    "data_ready",
+    "run_complete",
+    "evaluated",
+    "skipped",
+)
 SOURCE_ROLES = ("input", "validation", "narrative", "response_timeline", "context")
+CASE_REQUIRED_OUTPUT_FILES = (
+    "report.md",
+    "impact_summary.csv",
+    "priority_areas.csv",
+    "affected_facilities.geojson",
+    "affected_roads.geojson",
+    "map.html",
+    "metadata.json",
+)
 
 CASE_DOC_TEMPLATES = {
     "case_note.md": """# {case_id} Case Note
@@ -163,6 +181,33 @@ def scaffold_case_directory(
     return written
 
 
+def check_case_output_files(output_dir: str | Path) -> dict[str, bool]:
+    """Check whether a case-study run output directory has the core files.
+
+    The check is intentionally file-presence only. It confirms that the v0.1
+    pipeline produced the expected artifacts, but it does not validate the
+    scientific quality or operational usefulness of those artifacts.
+    """
+
+    output_path = Path(output_dir)
+    return {
+        filename: (output_path / filename).is_file()
+        for filename in CASE_REQUIRED_OUTPUT_FILES
+    }
+
+
+def validate_case_output_files(output_dir: str | Path) -> dict[str, bool]:
+    """Require that a case-study run output directory contains core outputs."""
+
+    checks = check_case_output_files(output_dir)
+    missing = [filename for filename, exists in checks.items() if not exists]
+    if missing:
+        raise CaseManifestError(
+            f"{output_dir} is missing required output files: {', '.join(missing)}."
+        )
+    return checks
+
+
 def _validate_source_inventory(value: Any, source: str) -> None:
     if not isinstance(value, list) or not value:
         raise CaseManifestError(f"{source}.case.source_inventory must be a non-empty list.")
@@ -210,6 +255,11 @@ def _validate_run_stages(value: Any, source: str) -> None:
         if item["stage"] not in CASE_STAGE_IDS:
             raise CaseManifestError(
                 f"{location}.stage must be one of {', '.join(CASE_STAGE_IDS)}."
+            )
+        if item["stage_status"] not in CASE_STAGE_STATUSES:
+            raise CaseManifestError(
+                f"{location}.stage_status must be one of "
+                f"{', '.join(CASE_STAGE_STATUSES)}."
             )
         seen_stages.add(item["stage"])
         if not isinstance(item["input_paths"], dict):

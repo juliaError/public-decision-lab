@@ -12,6 +12,7 @@ from disaster_nowcaster.adapters import (
 from disaster_nowcaster.admin import load_admin_units
 from disaster_nowcaster.aoi import load_aoi
 from disaster_nowcaster.cases import load_case_manifest, scaffold_case_directory
+from disaster_nowcaster.cases import validate_case_output_files
 from disaster_nowcaster.exposure import compute_exposure
 from disaster_nowcaster.hazard import load_hazard
 from disaster_nowcaster.infrastructure import load_infrastructure
@@ -121,6 +122,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="Allow replacing existing scaffold files.",
     )
     scaffold_parser.set_defaults(func=scaffold_case_command)
+
+    check_outputs_parser = case_subparsers.add_parser(
+        "check-outputs",
+        help="Check whether a case-study run output directory has core artifacts.",
+    )
+    check_outputs_parser.add_argument(
+        "--output",
+        required=True,
+        type=Path,
+        help="Case-study run output directory.",
+    )
+    check_outputs_parser.set_defaults(func=check_case_outputs_command)
     return parser
 
 
@@ -142,6 +155,15 @@ def scaffold_case_command(args: argparse.Namespace) -> int:
         overwrite=args.overwrite,
     )
     print(f"Wrote {len(written)} case-study files to {args.output}")
+    return 0
+
+
+def check_case_outputs_command(args: argparse.Namespace) -> int:
+    """Check that a case-study output directory contains core artifacts."""
+
+    checks = validate_case_output_files(args.output)
+    found = sum(1 for exists in checks.values() if exists)
+    print(f"Case output directory has {found} core files: {args.output}")
     return 0
 
 
