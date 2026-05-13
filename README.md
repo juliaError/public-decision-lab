@@ -138,6 +138,20 @@ See `docs/adapter_contract.md`.
 
 The future automation design is documented in `docs/cloud_automation.md`: GDACS event polling, duplicate checks, local standardized data preparation, nowcaster execution, artifact storage, and a validation gate before publication.
 
+## Retrospective Case Studies
+
+Historical case studies are tracked with YAML manifests and case notes. The first goal is to test whether the workflow helps with exposure screening and priority review before building public-facing tools.
+
+```bash
+disaster-nowcaster case validate \
+  --manifest configs/case_studies/pk_sindh_khairpur_flood_2022.yml
+
+disaster-nowcaster case check-outputs \
+  --output outputs/demo_event
+```
+
+The case output checker confirms that the seven core files exist. It does not validate damage, scientific quality, or operational usefulness.
+
 ## Tests
 
 ```bash

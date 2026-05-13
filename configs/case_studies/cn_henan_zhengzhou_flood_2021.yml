@@ -1,0 +1,137 @@
+case:
+  case_id: cn_henan_zhengzhou_flood_2021
+  event_name: "Henan / Zhengzhou extreme rainfall and flooding"
+  country_or_region: "China, Henan Province, Zhengzhou area"
+  hazard_type: flood
+  event_period: "2021-07-17 to 2021-07-23"
+  status: data_gap
+  evaluation_mode: retrospective_replay
+  source_inventory:
+    - source_id: govcn_investigation_release_20220121
+      title: "河南郑州“7·20”特大暴雨灾害调查报告公布"
+      publisher: "中国政府网 / 新华社"
+      url_or_path: "https://www.gov.cn/xinwen/2022-01/21/content_5669723.htm"
+      access_date: "2026-05-14"
+      availability: post_event
+      role: validation
+      notes: "Official public release summarizing the State Council investigation report; use for post-event validation and lessons, not as event-time input."
+    - source_id: govcn_investigation_qa_20220121
+      title: "国务院调查组相关负责人就河南郑州“7·20”特大暴雨灾害调查工作答记者问"
+      publisher: "中国政府网 / 新华社"
+      url_or_path: "https://www.gov.cn/xinwen/2022-01/21/content_5669744.htm"
+      access_date: "2026-05-14"
+      availability: post_event
+      role: context
+      notes: "Provides post-event details on rainfall process, affected places, and investigation rationale."
+    - source_id: govcn_response_level_20210720
+      title: "国家防总针对河南省防汛抢险救灾工作启动防汛Ⅲ级应急响应"
+      publisher: "中国政府网 / 应急部网站"
+      url_or_path: "https://www.gov.cn/xinwen/2021-07/20/content_5626238.htm"
+      access_date: "2026-05-14"
+      availability: during_event
+      role: response_timeline
+      notes: "Event-time response source for emergency activation, rescue deployment, and early rescue figures."
+    - source_id: mem_cross_region_rescue_20210721
+      title: "应急管理部启动消防救援队伍跨区域增援预案 调派1800名消防指战员增援河南防汛抢险救灾"
+      publisher: "中华人民共和国应急管理部"
+      url_or_path: "https://www.mem.gov.cn/xw/yjglbgzdt/202107/t20210721_392459.shtml"
+      access_date: "2026-05-14"
+      availability: during_event
+      role: response_timeline
+      notes: "Event-time rescue deployment source; useful for checking whether system outputs could have supported early resource review."
+    - source_id: mem_rescue_notice_20210721
+      title: "河南抢险救灾公告"
+      publisher: "中华人民共和国应急管理部救援协调局"
+      url_or_path: "https://www.mem.gov.cn/shjyfw/tzgg_3324/202107/t20210721_392538.shtml"
+      access_date: "2026-05-14"
+      availability: during_event
+      role: response_timeline
+      notes: "Event-time coordination notice for social emergency forces; contains contact details in the original source and should not be republished as operational instructions."
+    - source_id: mem_fire_rescue_record_20210725
+      title: "河南：消防救援队伍全力投入郑州强降雨救灾纪实"
+      publisher: "中华人民共和国应急管理部 / 河南省消防救援总队"
+      url_or_path: "https://www.mem.gov.cn/xw/jyll/202107/t20210725_392881.shtml"
+      access_date: "2026-05-14"
+      availability: post_event
+      role: context
+      notes: "Narrative rescue account shortly after the event; use for operational context and comparison, not as model input."
+    - source_id: govcn_henan_recovery_20210723
+      title: "河南全力抗洪抢险救灾 努力恢复生产生活秩序"
+      publisher: "中国政府网 / 河南日报"
+      url_or_path: "https://www.gov.cn/xinwen/2021-07/23/content_5626808.htm"
+      access_date: "2026-05-14"
+      availability: during_event
+      role: context
+      notes: "Event-time provincial response and recovery context."
+  run_stages:
+    - stage: T0_baseline
+      data_cutoff: "2021-07-16T23:59:59+08:00"
+      stage_status: planned
+      input_paths:
+        aoi: null
+        hazard: null
+        admin: null
+        population: null
+        roads: null
+        facilities: null
+      uncertainty_notes:
+        - "Baseline inputs need to be sourced; no real data are committed."
+        - "The core pipeline cannot run without a hazard layer, so T0 is an inventory stage."
+    - stage: T1_early_hazard
+      data_cutoff: "2021-07-20T23:59:59+08:00"
+      stage_status: data_gap
+      input_paths:
+        aoi: null
+        hazard: null
+        admin: null
+        population: null
+        roads: null
+        facilities: null
+      uncertainty_notes:
+        - "No trustworthy event-time flood polygon has been identified yet."
+        - "Rainfall, warning, or administrative impact proxies must not be labeled as observed inundation."
+    - stage: T2_updated_hazard
+      data_cutoff: "2021-07-23T23:59:59+08:00"
+      stage_status: data_gap
+      input_paths:
+        aoi: null
+        hazard: null
+        admin: null
+        population: null
+        roads: null
+        facilities: null
+      uncertainty_notes:
+        - "Updated hazard or observed flood extent source still needs verification."
+        - "Any proxy layer should be documented separately from actual flood extent."
+    - stage: T3_diagnostic
+      data_cutoff: "2022-01-21T23:59:59+08:00"
+      stage_status: source_review
+      input_paths:
+        aoi: null
+        hazard: null
+        admin: null
+        population: null
+        roads: null
+        facilities: null
+      uncertainty_notes:
+        - "Post-event investigation sources can be used for validation and diagnosis only."
+        - "Do not claim the system would have known post-event findings during the event."
+  required_outputs:
+    - report.md
+    - impact_summary.csv
+    - priority_areas.csv
+    - affected_facilities.geojson
+    - affected_roads.geojson
+    - map.html
+    - metadata.json
+  data_policy:
+    commit_large_data: false
+    raw_data_location: "Store real rasters and large vector files outside the repository; record source and local path only."
+    sensitive_data_policy: "Do not store individual reports, personal locations, or sensitive operational contact details in this repository."
+  upgrade_backlog:
+    - issue: "No verified flood extent is available yet for a reproducible T1 or T2 run."
+      proposed_upgrade: "Search official rapid mapping, Copernicus/NASA/UNOSAT sources, or construct a clearly labeled proxy only for diagnostic experiments."
+      priority: high
+    - issue: "Urban underground infrastructure and tunnel/metro risk are not represented in the v0.1 exposure model."
+      proposed_upgrade: "Add optional critical underground/transport facility inventory and explicit limitations."
+      priority: medium
