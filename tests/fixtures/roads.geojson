@@ -1,0 +1,21 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {"id": "affected_road"},
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[2, 5], [9, 5]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {"id": "unaffected_road"},
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[1, 1], [2, 1]]
+      }
+    }
+  ]
+}

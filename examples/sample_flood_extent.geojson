@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Synthetic flood extent"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [3, 3],
+            [8, 3],
+            [8, 8],
+            [3, 8],
+            [3, 3]
+          ]
+        ]
+      }
+    }
+  ]
+}
