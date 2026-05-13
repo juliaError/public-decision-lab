@@ -1,0 +1,358 @@
+model:
+  name: baseline_flood_priority
+  version: 0.1.0
+  hazard_type: flood
+  purpose: "Baseline configurable flood-response priority model"
+  status: "illustrative_default_not_official"
+
+normalization:
+  method: min_max
+  scope: within_event
+  equal_value_policy: zero_discriminatory_contribution
+  missing_required_policy: fail_score_and_flag
+  missing_optional_policy: renormalize_available_and_flag
+
+indicator_catalog:
+  hazard_severity:
+    concept: "Hazard intensity or likelihood proxy for the area."
+    entity_level: admin_area
+    direction: higher_is_worse
+    role: hazard
+    unit: "index"
+    interpretation_note: "Higher values mean greater hazard severity or likelihood for within-event ranking."
+    sensitivity_privacy_note: "Should be checked against source hazard uncertainty; does not confirm damage."
+
+  exposed_population:
+    concept: "Estimated people exposed to the hazard."
+    entity_level: admin_area
+    direction: higher_is_worse
+    role: exposure
+    unit: "estimated people"
+    interpretation_note: "Higher values mean more estimated exposed population, not confirmed affected people."
+    sensitivity_privacy_note: "Use aggregate population only; avoid individual-level data."
+
+  vulnerability:
+    concept: "Relative susceptibility to harm or barriers to recovery."
+    entity_level: admin_area
+    direction: higher_is_worse
+    role: vulnerability
+    unit: "index"
+    interpretation_note: "Higher values mean higher vulnerability under a locally reviewed proxy."
+    sensitivity_privacy_note: "May encode sensitive socioeconomic traits; requires local review."
+
+  lack_of_coping_capacity:
+    concept: "Limited ability to cope with or respond to the event."
+    entity_level: admin_area
+    direction: higher_is_worse
+    role: capacity
+    unit: "index"
+    interpretation_note: "Higher values mean lower coping capacity."
+    sensitivity_privacy_note: "Capacity proxies can be politically sensitive and should be documented."
+
+  health_facility_disruption:
+    concept: "Potential disruption affecting health and medical services."
+    entity_level: admin_area
+    direction: higher_is_worse
+    role: lifeline
+    unit: "count_or_index"
+    interpretation_note: "Higher values mean more potential health-service disruption; not verified facility damage."
+    sensitivity_privacy_note: "Avoid publishing sensitive facility details if harmful."
+
+  transport_disruption:
+    concept: "Potential road or transport disruption."
+    entity_level: admin_area
+    direction: higher_is_worse
+    role: lifeline
+    unit: "count_length_or_index"
+    interpretation_note: "Higher values mean more potential transport disruption."
+    sensitivity_privacy_note: "Road exposure does not confirm closure or passability loss."
+
+  shelter_school_disruption:
+    concept: "Potential disruption to schools, shelters, or related community facilities."
+    entity_level: admin_area
+    direction: higher_is_worse
+    role: lifeline
+    unit: "count_or_index"
+    interpretation_note: "Higher values mean more potentially affected schools or shelters."
+    sensitivity_privacy_note: "Shelter locations may be sensitive in some contexts."
+
+  energy_disruption:
+    concept: "Potential disruption to energy services."
+    entity_level: admin_area
+    direction: higher_is_worse
+    role: lifeline
+    unit: "index"
+    interpretation_note: "Higher values mean greater potential energy disruption."
+    sensitivity_privacy_note: "Operator data may be sensitive or incomplete."
+
+  need_severity:
+    concept: "Computed area-level likely humanitarian need severity score."
+    entity_level: admin_area
+    direction: higher_is_worse
+    role: derived_score
+    unit: "score_0_to_1"
+    interpretation_note: "Derived decision-support index; not a verified needs classification."
+    sensitivity_privacy_note: "Should be reviewed alongside source indicators and uncertainty."
+
+  isolation:
+    concept: "Potential isolation or access loss."
+    entity_level: admin_area
+    direction: higher_is_worse
+    role: lifeline
+    unit: "index"
+    interpretation_note: "Higher values mean greater access concern."
+    sensitivity_privacy_note: "Requires local validation of passability and access."
+
+  time_criticality:
+    concept: "Urgency of review due to time-sensitive life-safety concerns."
+    entity_level: admin_area
+    direction: higher_is_worse
+    role: field_report
+    unit: "index"
+    interpretation_note: "Higher values mean stronger time-critical review concern."
+    sensitivity_privacy_note: "Should not be used for individual dispatch without accountable procedures."
+
+  field_distress_signal:
+    concept: "Aggregated field distress signal, future optional."
+    entity_level: admin_area
+    direction: higher_is_worse
+    role: field_report
+    unit: "count_or_index"
+    interpretation_note: "Higher values mean more reported distress after aggregation and validation."
+    sensitivity_privacy_note: "No PII; aggregate, minimize, and validate reports."
+
+  exposed_households:
+    concept: "Estimated exposed households."
+    entity_level: admin_area
+    direction: higher_is_worse
+    role: exposure
+    unit: "estimated households"
+    interpretation_note: "Higher values mean more households potentially exposed."
+    sensitivity_privacy_note: "Use aggregated estimates only."
+
+  livelihood_loss_proxy:
+    concept: "Proxy for potential livelihood disruption."
+    entity_level: admin_area
+    direction: higher_is_worse
+    role: vulnerability
+    unit: "index"
+    interpretation_note: "Higher values mean greater livelihood-disruption concern."
+    sensitivity_privacy_note: "Livelihood proxies can be sensitive and uncertain."
+
+  delivery_feasibility:
+    concept: "Operational feasibility of delivering cash or voucher support."
+    entity_level: admin_area
+    direction: higher_is_better
+    role: feasibility
+    unit: "index"
+    interpretation_note: "Higher values mean easier delivery; feasibility is not humanitarian need."
+    sensitivity_privacy_note: "Can bias aid toward easier-to-reach areas if blended into need."
+
+  alternative_health_access_loss:
+    concept: "Loss of alternative access to health services."
+    entity_level: admin_area
+    direction: higher_is_worse
+    role: lifeline
+    unit: "index"
+    interpretation_note: "Higher values mean fewer or weaker alternative health-service options."
+    sensitivity_privacy_note: "Requires local validation of referral pathways and facility status."
+
+  vulnerable_population:
+    concept: "Estimated vulnerable population exposed or at risk."
+    entity_level: admin_area
+    direction: higher_is_worse
+    role: vulnerability
+    unit: "estimated people"
+    interpretation_note: "Higher values mean more estimated vulnerable people."
+    sensitivity_privacy_note: "Use aggregate groups only; avoid stigmatizing or identifiable outputs."
+
+  population_reconnected:
+    concept: "Estimated population reconnected if a road segment is repaired."
+    entity_level: road_segment
+    direction: higher_is_better
+    role: benefit
+    unit: "estimated people"
+    interpretation_note: "Higher values mean greater estimated reconnection benefit."
+    sensitivity_privacy_note: "Network assumptions should be documented and locally validated."
+
+  health_facilities_reconnected:
+    concept: "Health facilities reconnected if a road segment is repaired."
+    entity_level: road_segment
+    direction: higher_is_better
+    role: benefit
+    unit: "count"
+    interpretation_note: "Higher values mean more potential health-facility reconnection benefit."
+    sensitivity_privacy_note: "Facility function and access must be validated."
+
+  shelters_schools_reconnected:
+    concept: "Shelters or schools reconnected if a road segment is repaired."
+    entity_level: road_segment
+    direction: higher_is_better
+    role: benefit
+    unit: "count"
+    interpretation_note: "Higher values mean more community-facility reconnection benefit."
+    sensitivity_privacy_note: "Shelter and school locations can be sensitive."
+
+  aid_route_importance:
+    concept: "Importance of a road segment for aid delivery routes."
+    entity_level: road_segment
+    direction: higher_is_better
+    role: benefit
+    unit: "index"
+    interpretation_note: "Higher values mean greater route importance for aid delivery."
+    sensitivity_privacy_note: "Operational route information can be sensitive."
+
+  repair_difficulty:
+    concept: "Relative difficulty of repairing a road segment."
+    entity_level: road_segment
+    direction: higher_is_costlier
+    role: cost
+    unit: "index"
+    interpretation_note: "Higher values mean more difficult or costly repair."
+    sensitivity_privacy_note: "Early repair difficulty estimates can be uncertain."
+
+  segment_length_km:
+    concept: "Road segment length."
+    entity_level: road_segment
+    direction: higher_is_costlier
+    role: cost
+    unit: "kilometers"
+    interpretation_note: "Longer segments may be costlier to inspect or repair."
+    sensitivity_privacy_note: "Length is a crude cost proxy, not an engineering estimate."
+
+scores:
+  need_severity:
+    entity: admin_area
+    description: "Area-level likely humanitarian need severity"
+    weights:
+      hazard_severity: 0.25
+      exposed_population: 0.35
+      vulnerability: 0.25
+      lack_of_coping_capacity: 0.15
+    required_indicators:
+      - hazard_severity
+      - exposed_population
+      - vulnerability
+      - lack_of_coping_capacity
+    optional_indicators: []
+
+  lifeline_disruption:
+    entity: admin_area
+    description: "Area-level disruption to critical services"
+    weights:
+      health_facility_disruption: 0.35
+      transport_disruption: 0.35
+      shelter_school_disruption: 0.20
+      energy_disruption: 0.10
+    required_indicators:
+      - health_facility_disruption
+      - transport_disruption
+      - shelter_school_disruption
+    optional_indicators:
+      - energy_disruption
+
+  rescue_priority:
+    entity: admin_area
+    description: "Area-level urgent life-saving review priority"
+    weights:
+      need_severity: 0.45
+      isolation: 0.25
+      time_criticality: 0.15
+      field_distress_signal: 0.15
+    required_indicators:
+      - need_severity
+      - isolation
+      - time_criticality
+    optional_indicators:
+      - field_distress_signal
+
+  cash_need_score:
+    entity: admin_area
+    description: "Area-level emergency cash or voucher need review score"
+    weights:
+      exposed_households: 0.45
+      vulnerability: 0.35
+      livelihood_loss_proxy: 0.20
+    required_indicators:
+      - exposed_households
+      - vulnerability
+    optional_indicators:
+      - livelihood_loss_proxy
+
+  cash_feasibility_score:
+    entity: admin_area
+    description: "Area-level cash delivery feasibility score, reported separately from need"
+    weights:
+      delivery_feasibility: 1.00
+    required_indicators: []
+    optional_indicators:
+      - delivery_feasibility
+
+  cash_priority:
+    entity: admin_area
+    description: "Area-level cash-transfer review score; combines need with a separate feasibility warning"
+    formula: need_with_feasibility_warning
+    need_score: cash_need_score
+    feasibility_score: cash_feasibility_score
+    warning: "Feasibility is not humanitarian need and should not silently suppress cash support."
+    required_indicators:
+      - cash_need_score
+    optional_indicators:
+      - cash_feasibility_score
+
+  health_support_priority:
+    entity: admin_area
+    description: "Area-level medical support priority"
+    weights:
+      exposed_population: 0.30
+      health_facility_disruption: 0.30
+      alternative_health_access_loss: 0.20
+      vulnerable_population: 0.20
+    required_indicators:
+      - exposed_population
+      - health_facility_disruption
+      - vulnerable_population
+    optional_indicators:
+      - alternative_health_access_loss
+
+  road_repair_priority:
+    entity: road_segment
+    description: "Road-segment repair priority based on reconnection benefit over cost"
+    formula: benefit_over_cost
+    epsilon: 1.0
+    benefit_index: road_repair_priority_benefit_index
+    cost_index: road_repair_priority_cost_index
+    benefit_weights:
+      population_reconnected: 0.40
+      health_facilities_reconnected: 0.25
+      shelters_schools_reconnected: 0.15
+      aid_route_importance: 0.20
+    cost_terms:
+      - repair_difficulty
+      - segment_length_km
+    required_indicators:
+      - population_reconnected
+      - health_facilities_reconnected
+      - shelters_schools_reconnected
+      - segment_length_km
+    optional_indicators:
+      - repair_difficulty
+      - aid_route_importance
+
+reporting:
+  always_include:
+    - weights
+    - indicator_directions
+    - score_entity
+    - missing_indicators
+    - data_quality_flag
+    - model_completeness_flag
+    - uncertainty_note
+    - "exposure_is_not_confirmed_damage"
+  warning: "Scores are decision-support indices, not official allocation rules."
+  notes:
+    - "Default weights are illustrative baseline settings only."
+    - "Users should review weights locally before operational use."
+    - "Optional missing indicators are flagged and available weights are renormalized."
+    - "Feasibility is not the same as humanitarian need."
+    - "Scores require validation against official reports and local knowledge."

@@ -1,0 +1,41 @@
+name: cloud-demo
+
+on:
+  workflow_dispatch:
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install package
+        run: python -m pip install -e ".[dev]"
+      - name: Run static demo
+        run: |
+          disaster-nowcaster run \
+            --aoi examples/sample_aoi.geojson \
+            --hazard examples/sample_flood_extent.geojson \
+            --roads examples/sample_roads.geojson \
+            --facilities examples/sample_facilities.geojson \
+            --admin examples/sample_admin_units.geojson \
+            --population examples/sample_population.tif \
+            --output outputs/demo_event \
+            --overwrite
+      - name: Check expected outputs
+        run: |
+          test -f outputs/demo_event/report.md
+          test -f outputs/demo_event/impact_summary.csv
+          test -f outputs/demo_event/priority_areas.csv
+          test -f outputs/demo_event/affected_facilities.geojson
+          test -f outputs/demo_event/affected_roads.geojson
+          test -f outputs/demo_event/map.html
+          test -f outputs/demo_event/metadata.json
+      - name: Upload demo outputs
+        uses: actions/upload-artifact@v7
+        with:
+          name: disaster-nowcaster-demo-event
+          path: outputs/demo_event/
+          retention-days: 14

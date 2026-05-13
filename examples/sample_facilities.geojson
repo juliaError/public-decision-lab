@@ -1,0 +1,27 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "clinic_in_hazard",
+        "facility_type": "clinic"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [6, 5]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "school_outside_hazard",
+        "facility_type": "school"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [1, 1]
+      }
+    }
+  ]
+}

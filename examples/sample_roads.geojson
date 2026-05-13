@@ -1,0 +1,31 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "road_in_hazard"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [1, 5],
+          [9, 5]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "road_outside_hazard"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [1, 1],
+          [2, 1]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+
+# Local and generated artifacts
+.DS_Store
+outputs/*
+!outputs/.gitkeep
+data/*
+!data/README.md
+
+# Notebooks
+.ipynb_checkpoints/
