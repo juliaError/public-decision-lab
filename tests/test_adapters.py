@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import numpy as np
@@ -7,9 +8,12 @@ from rasterio.transform import from_origin
 
 from disaster_nowcaster.adapters import (
     AdapterMetadata,
+    LocalCopernicusGFMFloodAdapter,
+    LocalGdacsEventAdapter,
     LocalHazardAdapter,
     LocalNasaLanceFloodAdapter,
 )
+from disaster_nowcaster.cli import main
 from disaster_nowcaster.events import DisasterEvent
 from disaster_nowcaster.hazard import load_hazard
 
@@ -121,6 +125,131 @@ def test_local_nasa_lance_flood_adapter_rejects_non_flood_event(tmp_path):
                 source="unit_test",
             )
         )
+
+
+def test_local_copernicus_gfm_flood_adapter_writes_hazard_geojson(tmp_path):
+    raster_path = tmp_path / "synthetic_gfm_flood.tif"
+    output_path = tmp_path / "hazard_from_gfm.geojson"
+    _write_synthetic_flood_raster(raster_path)
+    adapter = LocalCopernicusGFMFloodAdapter(
+        raster_path,
+        output_path,
+        flood_value=1,
+        notes=["Synthetic fixture only."],
+    )
+
+    result = adapter.prepare(
+        DisasterEvent(
+            event_id="synthetic-flood",
+            hazard_type="flood",
+            name="Synthetic flood",
+            source="unit_test",
+        )
+    )
+    hazard_layer = load_hazard(result.path)
+
+    assert result.path == output_path
+    assert result.layer_name == "hazard"
+    assert result.metadata.auto_downloaded is False
+    assert "does not download Copernicus GFM data" in result.metadata.known_limitations[0]
+    assert len(hazard_layer.features) >= 1
+    assert hazard_layer.features[0]["properties"]["source"] == (
+        "local_copernicus_gfm_style_raster"
+    )
+
+
+def test_local_copernicus_gfm_flood_adapter_rejects_non_flood_event(tmp_path):
+    raster_path = tmp_path / "synthetic_gfm_flood.tif"
+    output_path = tmp_path / "hazard_from_gfm.geojson"
+    _write_synthetic_flood_raster(raster_path)
+    adapter = LocalCopernicusGFMFloodAdapter(raster_path, output_path)
+
+    with pytest.raises(ValueError, match="requires flood event"):
+        adapter.prepare(
+            DisasterEvent(
+                event_id="synthetic-fire",
+                hazard_type="wildfire",
+                name="Synthetic wildfire",
+                source="unit_test",
+            )
+        )
+
+
+def test_local_gdacs_event_adapter_reads_manifest(tmp_path):
+    manifest_path = tmp_path / "gdacs_events.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "events": [
+                    {
+                        "event_id": "FL-2026-000001",
+                        "hazard_type": "flood",
+                        "name": "Synthetic flood alert",
+                        "source": "unit_test_manifest",
+                        "start_time_utc": "2026-05-13T00:00:00Z",
+                        "metadata": {"alert_level": "synthetic"},
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    adapter = LocalGdacsEventAdapter(manifest_path)
+
+    events = adapter.list_events()
+
+    assert len(events) == 1
+    assert events[0].event_id == "FL-2026-000001"
+    assert events[0].hazard_type == "flood"
+    assert events[0].metadata["alert_level"] == "synthetic"
+    assert adapter.metadata.auto_downloaded is False
+    assert "does not poll GDACS" in adapter.metadata.known_limitations[0]
+
+
+def test_cli_prepare_hazard_nasa_lance_local(tmp_path):
+    raster_path = tmp_path / "synthetic_lance_flood.tif"
+    output_path = tmp_path / "prepared_lance_hazard.geojson"
+    _write_synthetic_flood_raster(raster_path)
+
+    exit_code = main(
+        [
+            "prepare-hazard",
+            "nasa-lance-local",
+            "--raster",
+            str(raster_path),
+            "--output",
+            str(output_path),
+            "--flood-value",
+            "1",
+        ]
+    )
+
+    assert exit_code == 0
+    assert output_path.exists()
+    assert load_hazard(output_path).features
+
+
+def test_cli_prepare_hazard_copernicus_gfm_local(tmp_path):
+    raster_path = tmp_path / "synthetic_gfm_flood.tif"
+    output_path = tmp_path / "prepared_gfm_hazard.geojson"
+    _write_synthetic_flood_raster(raster_path)
+
+    exit_code = main(
+        [
+            "prepare-hazard",
+            "copernicus-gfm-local",
+            "--raster",
+            str(raster_path),
+            "--output",
+            str(output_path),
+            "--flood-value",
+            "1",
+        ]
+    )
+
+    assert exit_code == 0
+    assert output_path.exists()
+    assert load_hazard(output_path).features
 
 
 def _write_synthetic_flood_raster(path: Path) -> None:

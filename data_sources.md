@@ -13,6 +13,8 @@ Users provide local GeoJSON files for:
 - facility points.
 - optional population raster GeoTIFF.
 
+Local raster hazard adapters can also prepare a hazard GeoJSON from user-supplied flood GeoTIFF files.
+
 ## Example Files
 
 Files in `examples/` and `tests/fixtures/` are tiny synthetic files used only to demonstrate and test the workflow. They are not real disaster observations or real WorldPop data and should not be interpreted as evidence about any place or event.
@@ -81,3 +83,40 @@ Limitations:
 - The adapter does not verify NASA product class semantics, timing, confidence, cloud effects, or validation status.
 - No reprojection is performed.
 - Output is a hazard input for exposure screening, not confirmed damage.
+
+## Copernicus GFM-Style Local Flood Raster
+
+Copernicus Global Flood Monitoring (GFM) is part of the Copernicus Emergency Management Service flood monitoring ecosystem. The current implementation only supports local user-supplied Copernicus GFM-style flood GeoTIFF files through `LocalCopernicusGFMFloodAdapter`.
+
+Current support:
+
+- local GeoTIFF input;
+- configurable flood-value threshold;
+- local hazard GeoJSON output.
+
+Limitations:
+
+- The adapter does not download Copernicus GFM data.
+- The adapter does not verify GFM product class semantics, timing, quality flags, exclusion masks, or validation status.
+- No reprojection is performed.
+- Output is a hazard input for exposure screening, not confirmed damage.
+
+## GDACS-Style Local Event Manifest
+
+GDACS provides global disaster alert information that can eventually trigger event-specific runs. The current implementation only supports local GDACS-style JSON manifests through `LocalGdacsEventAdapter`.
+
+Current support:
+
+- local JSON manifest input;
+- event records with `event_id` or `id`, `hazard_type` or `event_type`, and `name` or `title`;
+- output as internal `DisasterEvent` objects.
+
+Limitations:
+
+- The adapter does not poll GDACS feeds.
+- It does not choose an AOI, select a hazard product, or trigger a run automatically.
+- Event metadata are triggers for review, not confirmed damage or verified local impacts.
+
+## Cloud Automation Source Notes
+
+The first GitHub Actions cloud demo uses only synthetic/sample repository inputs. Future live cloud automation should re-check official source documentation before implementing network adapters, store raw external data outside the repository, and preserve source metadata in event output folders.

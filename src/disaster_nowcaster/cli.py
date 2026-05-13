@@ -5,6 +5,10 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from disaster_nowcaster.adapters import (
+    LocalCopernicusGFMFloodAdapter,
+    LocalNasaLanceFloodAdapter,
+)
 from disaster_nowcaster.admin import load_admin_units
 from disaster_nowcaster.aoi import load_aoi
 from disaster_nowcaster.exposure import compute_exposure
@@ -52,7 +56,86 @@ def build_parser() -> argparse.ArgumentParser:
         help="Allow replacing generated files in an existing output directory.",
     )
     run_parser.set_defaults(func=run_command)
+
+    prepare_parser = subparsers.add_parser(
+        "prepare-hazard",
+        help="Prepare a local hazard GeoJSON artifact from a supported local input.",
+    )
+    prepare_subparsers = prepare_parser.add_subparsers(
+        dest="adapter",
+        required=True,
+        help="Local hazard adapter to use.",
+    )
+
+    nasa_parser = prepare_subparsers.add_parser(
+        "nasa-lance-local",
+        help="Convert a local NASA LANCE-style flood raster into hazard GeoJSON.",
+    )
+    _add_local_raster_hazard_arguments(nasa_parser)
+    nasa_parser.set_defaults(func=prepare_nasa_lance_local_command)
+
+    copernicus_parser = prepare_subparsers.add_parser(
+        "copernicus-gfm-local",
+        help="Convert a local Copernicus GFM-style flood raster into hazard GeoJSON.",
+    )
+    _add_local_raster_hazard_arguments(copernicus_parser)
+    copernicus_parser.set_defaults(func=prepare_copernicus_gfm_local_command)
     return parser
+
+
+def _add_local_raster_hazard_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--raster",
+        required=True,
+        type=Path,
+        help="Local flood raster GeoTIFF to threshold.",
+    )
+    parser.add_argument(
+        "--output",
+        required=True,
+        type=Path,
+        help="Output hazard polygon GeoJSON.",
+    )
+    parser.add_argument(
+        "--flood-value",
+        type=float,
+        default=1.0,
+        help="Raster value threshold treated as flood for exposure screening.",
+    )
+
+
+def prepare_nasa_lance_local_command(args: argparse.Namespace) -> int:
+    """Prepare local NASA LANCE-style flood raster input."""
+
+    adapter = LocalNasaLanceFloodAdapter(
+        args.raster,
+        args.output,
+        flood_value=args.flood_value,
+    )
+    result = adapter.prepare()
+    _print_prepared_hazard_result(result.path)
+    return 0
+
+
+def prepare_copernicus_gfm_local_command(args: argparse.Namespace) -> int:
+    """Prepare local Copernicus GFM-style flood raster input."""
+
+    adapter = LocalCopernicusGFMFloodAdapter(
+        args.raster,
+        args.output,
+        flood_value=args.flood_value,
+    )
+    result = adapter.prepare()
+    _print_prepared_hazard_result(result.path)
+    return 0
+
+
+def _print_prepared_hazard_result(path: Path) -> None:
+    print(f"Wrote local hazard GeoJSON to {path}")
+    print(
+        "Prepared hazard input only: not confirmed damage, "
+        "not an official flood map, and requires validation."
+    )
 
 
 def run_command(args: argparse.Namespace) -> int:

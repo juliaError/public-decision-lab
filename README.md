@@ -58,6 +58,24 @@ python -m disaster_nowcaster.cli run \
   --output outputs/demo_event
 ```
 
+## Prepare Local Raster Hazards
+
+Local flood rasters can be converted into the hazard GeoJSON expected by the demo pipeline:
+
+```bash
+disaster-nowcaster prepare-hazard nasa-lance-local \
+  --raster path/to/local_flood.tif \
+  --output outputs/prepared_hazard.geojson \
+  --flood-value 1
+
+disaster-nowcaster prepare-hazard copernicus-gfm-local \
+  --raster path/to/local_gfm_flood.tif \
+  --output outputs/prepared_hazard.geojson \
+  --flood-value 1
+```
+
+These commands only prepare local input files. They do not download satellite data, validate flood-product semantics, or confirm damage.
+
 ## Outputs
 
 The demo writes an event output folder such as `outputs/demo_event/` containing:
@@ -107,10 +125,18 @@ Current adapter support is intentionally local-only:
 
 - `LocalHazardAdapter` wraps an existing local hazard GeoJSON.
 - `LocalNasaLanceFloodAdapter` converts an existing local NASA LANCE-style flood GeoTIFF into hazard GeoJSON using a configurable threshold.
+- `LocalCopernicusGFMFloodAdapter` converts an existing local Copernicus GFM-style flood GeoTIFF into hazard GeoJSON using a configurable threshold.
+- `LocalGdacsEventAdapter` reads a local GDACS-style event manifest JSON into internal event metadata.
 - No NASA LANCE, Copernicus GFM, GDACS, WorldPop, OSM, or satellite-data API is called automatically.
 - Adapter outputs remain inputs for exposure screening, not confirmed damage or official priority information.
 
 See `docs/adapter_contract.md`.
+
+## Cloud Demo
+
+`.github/workflows/cloud-demo.yml` can run the static v0.1 demo in GitHub Actions using `workflow_dispatch` and upload the generated output folder as an artifact. This is a cloud-runnable demo, not a live disaster trigger.
+
+The future automation design is documented in `docs/cloud_automation.md`: GDACS event polling, duplicate checks, local standardized data preparation, nowcaster execution, artifact storage, and a validation gate before publication.
 
 ## Tests
 
