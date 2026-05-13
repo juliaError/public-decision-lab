@@ -43,3 +43,22 @@ This score is only a transparent sorting aid for review. It is not an official a
 - No sub-cell area weighting; cell inclusion uses the raster cell center.
 - No official priority scoring.
 - No validated damage or service-disruption claims.
+
+## Priority Scoring Framework
+
+The scoring framework is grounded in established disaster-risk and humanitarian-analysis concepts: hazard, exposure, vulnerability, capacity, lack of coping capacity, intersectoral needs severity, impact-based forecasting, anticipatory-action trigger review, community lifelines, and multi-criteria decision analysis.
+
+The project now supports configurable score families rather than one universal priority score:
+
+- need severity;
+- lifeline disruption;
+- rescue review priority;
+- cash-transfer support priority;
+- health support priority;
+- road repair review priority.
+
+Scores use explicit weights from YAML configuration files, with `configs/priority_models/baseline_flood.yml` as an illustrative baseline. The implementation normalizes indicators within the event using min-max normalization. If all non-missing indicator values are equal, the normalized value is `0.0` so the model does not invent variation.
+
+Weights are normative choices, not scientific facts. They should be reviewed locally, documented in reports, and sensitivity-tested before operational use. Missing required indicators should block computation; optional missing indicators may be skipped only with explicit flags.
+
+Priority scores remain decision-support indices. They are not confirmed damage estimates, beneficiary lists, dispatch orders, or official allocation rules. Every score should be interpreted with data-quality flags, uncertainty notes, and local validation.

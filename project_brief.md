@@ -8,6 +8,8 @@ In short:
 
 > This project does **not** reinvent disaster forecasting or disaster mapping. It translates existing disaster information into reproducible, decision-relevant impact and priority outputs.
 
+The prioritization layer should be evidence-informed, configurable, and transparent. Action-specific priority models are preferred over a single universal score because rescue review, cash-transfer support, road repair, health support, lifeline disruption, and general need-severity review have different objectives. Default weights are illustrative and must be locally reviewed before operational use.
+
 ---
 
 ## 2. What This Project Does Not Do
@@ -855,4 +857,3 @@ hazard layer + exposure + vulnerability + infrastructure + uncertainty
 ```
 
 The project’s long-run ambition is to provide a reusable open-source foundation for disaster-response analysis, humanitarian data workflows, public-risk monitoring, and welfare-oriented emergency prioritization.
-

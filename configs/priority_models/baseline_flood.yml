@@ -1,0 +1,116 @@
+model:
+  name: baseline_flood_priority
+  version: 0.1.0
+  hazard_type: flood
+  purpose: "Baseline configurable flood-response priority model"
+  status: "illustrative_default_not_official"
+
+normalization:
+  method: min_max
+  scope: within_event
+  equal_value_policy: neutral_zero
+  missing_value_policy: flag
+
+scores:
+  need_severity:
+    description: "Area-level likely humanitarian need severity"
+    weights:
+      hazard_severity: 0.25
+      exposed_population: 0.35
+      vulnerability: 0.25
+      lack_of_coping_capacity: 0.15
+    required_indicators:
+      - hazard_severity
+      - exposed_population
+      - vulnerability
+      - lack_of_coping_capacity
+    optional_indicators: []
+
+  lifeline_disruption:
+    description: "Area-level disruption to critical services"
+    weights:
+      health_facility_disruption: 0.35
+      transport_disruption: 0.35
+      shelter_school_disruption: 0.20
+      energy_disruption: 0.10
+    required_indicators:
+      - health_facility_disruption
+      - transport_disruption
+      - shelter_school_disruption
+    optional_indicators:
+      - energy_disruption
+
+  rescue_priority:
+    description: "Area-level urgent life-saving review priority"
+    weights:
+      need_severity: 0.45
+      isolation: 0.25
+      time_criticality: 0.15
+      field_distress_signal: 0.15
+    required_indicators:
+      - need_severity
+      - isolation
+      - time_criticality
+    optional_indicators:
+      - field_distress_signal
+
+  cash_priority:
+    description: "Area-level emergency cash-transfer targeting support"
+    weights:
+      exposed_households: 0.30
+      vulnerability: 0.35
+      livelihood_loss_proxy: 0.20
+      delivery_feasibility: 0.15
+    required_indicators:
+      - exposed_households
+      - vulnerability
+    optional_indicators:
+      - livelihood_loss_proxy
+      - delivery_feasibility
+
+  health_support_priority:
+    description: "Area-level medical support priority"
+    weights:
+      exposed_population: 0.30
+      health_facility_disruption: 0.30
+      alternative_health_access_loss: 0.20
+      vulnerable_population: 0.20
+    required_indicators:
+      - exposed_population
+      - health_facility_disruption
+      - vulnerable_population
+    optional_indicators:
+      - alternative_health_access_loss
+
+  road_repair_priority:
+    description: "Road-segment repair priority based on reconnection benefit over cost"
+    formula: "benefit_over_cost"
+    benefit_weights:
+      population_reconnected: 0.40
+      health_facilities_reconnected: 0.25
+      shelters_schools_reconnected: 0.15
+      aid_route_importance: 0.20
+    cost_terms:
+      - repair_difficulty
+      - segment_length_km
+    required_indicators:
+      - population_reconnected
+      - health_facilities_reconnected
+      - shelters_schools_reconnected
+      - segment_length_km
+    optional_indicators:
+      - repair_difficulty
+      - aid_route_importance
+
+reporting:
+  always_include:
+    - weights
+    - missing_indicators
+    - data_quality_flag
+    - uncertainty_note
+    - "exposure_is_not_confirmed_damage"
+  warning: "Scores are decision-support indices, not official allocation rules."
+  notes:
+    - "Default weights are illustrative baseline settings only."
+    - "Users should review weights locally before operational use."
+    - "Scores require validation against official reports and local knowledge."

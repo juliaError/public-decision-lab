@@ -13,8 +13,10 @@ authors = [
   { name = "Civic Measurement Lab" }
 ]
 dependencies = [
+  "pandas>=2,<3",
   "rasterio>=1.3,<2",
-  "shapely>=2,<3"
+  "shapely>=2,<3",
+  "PyYAML>=6,<7"
 ]
 
 [project.optional-dependencies]

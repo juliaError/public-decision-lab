@@ -89,7 +89,15 @@ Reports use cautious terminology:
 - Road length is measured in input CRS units.
 - The built-in geometry checks are minimal and intended for tiny synthetic fixtures, not complex real-world topology.
 - It reports exposure screening only; every result requires validation against official reports and local knowledge.
-- Automatic WorldPop download, reprojection, advanced geospatial operations, and configurable priority weights are future work.
+- Automatic WorldPop download, reprojection, advanced geospatial operations, and validated local priority calibration are future work.
+
+## Priority Scoring
+
+Priority scoring is configurable and action-specific. The repository includes a baseline flood-response YAML model at `configs/priority_models/baseline_flood.yml` and scoring utilities in `src/disaster_nowcaster/scoring.py`.
+
+Scores are decision-support indices, not official allocation rules. Default weights are illustrative baseline settings only; users should adapt weights to local objectives, constraints, data quality, and stakeholder review. Exposure does not equal confirmed damage, and all priority outputs must be locally validated before use.
+
+The first scoring framework supports separate score families for need severity, lifeline disruption, rescue review, cash-transfer support, health support, and road repair review. The design rationale is documented in `priority_model_design.md`.
 
 ## Tests
 
