@@ -9,6 +9,7 @@ from disaster_nowcaster.adapters.base import (
     PopulationAdapter,
 )
 from disaster_nowcaster.adapters.local_hazard import LocalHazardAdapter
+from disaster_nowcaster.adapters.nasa_lance import LocalNasaLanceFloodAdapter
 
 __all__ = [
     "AdapterMetadata",
@@ -18,4 +19,5 @@ __all__ = [
     "InfrastructureAdapter",
     "PopulationAdapter",
     "LocalHazardAdapter",
+    "LocalNasaLanceFloodAdapter",
 ]

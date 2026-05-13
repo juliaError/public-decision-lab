@@ -64,3 +64,20 @@ Every future adapter should document:
 - whether the data are observed, modeled, crowdsourced, or manually supplied.
 
 Adapter metadata fields are defined in `docs/adapter_contract.md`. The current adapter implementation is local-only and does not automatically download external disaster data.
+
+## NASA LANCE-Style Local Flood Raster
+
+NASA LANCE provides near-real-time Earth observation products, including flood-related products. The current implementation only supports local user-supplied NASA LANCE-style flood GeoTIFF files through `LocalNasaLanceFloodAdapter`.
+
+Current support:
+
+- local GeoTIFF input;
+- configurable flood-value threshold;
+- local hazard GeoJSON output.
+
+Limitations:
+
+- The adapter does not download NASA LANCE data.
+- The adapter does not verify NASA product class semantics, timing, confidence, cloud effects, or validation status.
+- No reprojection is performed.
+- Output is a hazard input for exposure screening, not confirmed damage.

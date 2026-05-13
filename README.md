@@ -106,6 +106,7 @@ The repository includes an adapter contract for future data-source integrations.
 Current adapter support is intentionally local-only:
 
 - `LocalHazardAdapter` wraps an existing local hazard GeoJSON.
+- `LocalNasaLanceFloodAdapter` converts an existing local NASA LANCE-style flood GeoTIFF into hazard GeoJSON using a configurable threshold.
 - No NASA LANCE, Copernicus GFM, GDACS, WorldPop, OSM, or satellite-data API is called automatically.
 - Adapter outputs remain inputs for exposure screening, not confirmed damage or official priority information.
 

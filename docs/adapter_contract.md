@@ -67,6 +67,8 @@ Every adapter result should include:
 
 `LocalHazardAdapter` wraps an existing local hazard GeoJSON file and validates that it can be loaded as a hazard polygon layer. It does not download data or certify that the hazard file is authoritative.
 
+`LocalNasaLanceFloodAdapter` accepts an existing local NASA LANCE-style flood raster GeoTIFF, thresholds flood pixels, and writes a local hazard GeoJSON. It does not download NASA LANCE data and does not validate product timing, CRS, or class semantics.
+
 Example:
 
 ```python
@@ -86,6 +88,8 @@ print(result.metadata.to_dict())
 ### NASA LANCE Flood Product
 
 Future work can add a NASA LANCE adapter that downloads or reads flood GeoTIFF products and converts them into the local hazard input expected by the pipeline. The first safe step should support local user-supplied NASA-style GeoTIFF files before automatic download.
+
+Current implementation status: local user-supplied NASA-style GeoTIFF files are supported through `LocalNasaLanceFloodAdapter`; automatic download remains future work.
 
 ### Copernicus GFM
 
