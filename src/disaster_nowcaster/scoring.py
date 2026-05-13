@@ -47,6 +47,7 @@ VALID_ROLES = {
     "cost",
     "benefit",
     "field_report",
+    "derived_score",
 }
 VALID_FORMULAS = {"benefit_over_cost", "need_with_feasibility_warning"}
 WEIGHT_TOLERANCE = 1e-6
@@ -108,13 +109,21 @@ def validate_priority_config(config: dict[str, Any]) -> None:
         if formula == "benefit_over_cost":
             _validate_weight_mapping(score_name, score_config, "benefit_weights")
             _validate_score_indicators(score_name, score_config, catalog)
+            _validate_score_entity_compatibility(
+                score_name, score_config, catalog, scores
+            )
             continue
         if formula == "need_with_feasibility_warning":
             _validate_derived_score_references(score_name, score_config, scores)
+            _validate_score_entity_compatibility(
+                score_name, score_config, catalog, scores
+            )
             continue
 
         _validate_weight_mapping(score_name, score_config, "weights")
+        _validate_weighted_indicator_declarations(score_name, score_config)
         _validate_score_indicators(score_name, score_config, catalog)
+        _validate_score_entity_compatibility(score_name, score_config, catalog, scores)
 
 
 def min_max_normalize(series: pd.Series) -> pd.Series:
@@ -190,6 +199,11 @@ def compute_weighted_score(
     columns are skipped and available weights are renormalized when
     `missing_policy="skip"`. Missing required row values make that row's score
     missing and set row-level quality/completeness flags.
+
+    Component columns use normalized indicator values multiplied by the original
+    configured weight. The final score may renormalize by row-level available
+    weights when optional indicators are missing; inspect
+    `{score_name}_row_weight_sum_used` for that denominator.
     """
 
     _validate_weights(weights, score_name, require_sum_one=False)
@@ -463,25 +477,44 @@ def _compute_need_with_feasibility_warning(
     result[f"{score_name}_need_component"] = result[need_score]
     if feasibility_score in result.columns:
         result[f"{score_name}_feasibility_component"] = result[feasibility_score]
-        missing_optional = result.get(
+        feasibility_missing_optional = result.get(
             f"{feasibility_score}_missing_optional_indicators",
             pd.Series("", index=result.index),
         )
     else:
         result[f"{score_name}_feasibility_component"] = pd.NA
-        missing_optional = pd.Series(feasibility_score, index=result.index)
+        feasibility_missing_optional = pd.Series(feasibility_score, index=result.index)
 
     result[f"{score_name}_warning"] = str(score_config.get("warning", ""))
-    result[f"{score_name}_missing_required_indicators"] = result.get(
-        f"{need_score}_missing_required_indicators", ""
+    need_missing_required = result.get(
+        f"{need_score}_missing_required_indicators",
+        pd.Series("", index=result.index),
     )
-    result[f"{score_name}_missing_optional_indicators"] = missing_optional
-    result[f"{score_name}_data_quality_flag"] = result.get(
-        f"{need_score}_data_quality_flag", QUALITY_HIGH
+    need_missing_optional = result.get(
+        f"{need_score}_missing_optional_indicators",
+        pd.Series("", index=result.index),
     )
-    result[f"{score_name}_model_completeness_flag"] = result.get(
-        f"{need_score}_model_completeness_flag", COMPLETENESS_COMPLETE
+    result[f"{score_name}_missing_required_indicators"] = need_missing_required
+    result[f"{score_name}_missing_optional_indicators"] = [
+        _join_indicators(
+            [item for item in str(left).split(",") if item]
+            + [item for item in str(right).split(",") if item]
+        )
+        for left, right in zip(need_missing_optional, feasibility_missing_optional)
+    ]
+    flags = _flags_from_missing_lists(
+        [
+            [item for item in str(value).split(",") if item]
+            for value in result[f"{score_name}_missing_required_indicators"]
+        ],
+        [
+            [item for item in str(value).split(",") if item]
+            for value in result[f"{score_name}_missing_optional_indicators"]
+        ],
+        required_count=1,
     )
+    result[f"{score_name}_data_quality_flag"] = flags["data_quality"]
+    result[f"{score_name}_model_completeness_flag"] = flags["model_completeness"]
     return result
 
 
@@ -649,6 +682,65 @@ def _validate_score_indicators(
             )
 
 
+def _validate_weighted_indicator_declarations(
+    score_name: str, score_config: dict[str, Any]
+) -> None:
+    weight_indicators = set(str(item) for item in score_config.get("weights", {}))
+    declared_indicators = set(
+        str(item)
+        for item in (
+            list(score_config.get("required_indicators", []))
+            + list(score_config.get("optional_indicators", []))
+        )
+    )
+    if declared_indicators != weight_indicators:
+        raise ConfigValidationError(
+            f"{score_name} required_indicators plus optional_indicators must "
+            "match weights unless gating_indicators are explicitly supported."
+        )
+
+
+def _validate_score_entity_compatibility(
+    score_name: str,
+    score_config: dict[str, Any],
+    catalog: dict[str, Any],
+    scores: dict[str, Any],
+) -> None:
+    score_entity = str(score_config["entity"])
+    for indicator in _raw_indicators_for_entity_check(score_config):
+        metadata = catalog.get(indicator)
+        if metadata is None:
+            continue
+        indicator_entity = str(metadata["entity_level"])
+        indicator_role = str(metadata["role"])
+        if indicator_role == "derived_score":
+            producing_score = scores.get(indicator)
+            if producing_score is None:
+                raise ConfigValidationError(
+                    f"{score_name} uses derived score without producing score: "
+                    f"{indicator}"
+                )
+            if str(producing_score.get("entity")) != score_entity:
+                raise ConfigValidationError(
+                    f"{score_name} uses derived score {indicator} with incompatible "
+                    f"entity {producing_score.get('entity')!r}; expected {score_entity!r}."
+                )
+            continue
+        if indicator_entity != score_entity:
+            raise ConfigValidationError(
+                f"{score_name} uses indicator {indicator} with incompatible entity "
+                f"{indicator_entity!r}; expected {score_entity!r}."
+            )
+
+    for key in ["need_score", "feasibility_score"]:
+        reference = score_config.get(key)
+        if reference and str(scores[reference].get("entity")) != score_entity:
+            raise ConfigValidationError(
+                f"{score_name} references {reference} with incompatible entity "
+                f"{scores[reference].get('entity')!r}; expected {score_entity!r}."
+            )
+
+
 def _validate_derived_score_references(
     score_name: str, score_config: dict[str, Any], scores: dict[str, Any]
 ) -> None:
@@ -658,6 +750,15 @@ def _validate_derived_score_references(
             raise ConfigValidationError(
                 f"{score_name} references unknown {key}: {reference!r}."
             )
+
+
+def _raw_indicators_for_entity_check(score_config: dict[str, Any]) -> list[str]:
+    indicators: list[str] = []
+    for key in ["weights", "benefit_weights"]:
+        if isinstance(score_config.get(key), dict):
+            indicators.extend(str(item) for item in score_config[key])
+    indicators.extend(str(item) for item in score_config.get("cost_terms", []))
+    return sorted(set(indicators))
 
 
 def _weights_from_config(

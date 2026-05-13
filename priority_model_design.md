@@ -18,6 +18,8 @@ A single universal score would hide these tradeoffs and could imply that one ran
 
 Each score must also declare its entity level. The baseline flood model uses `admin_area` for need severity, lifeline disruption, rescue review, cash review, and health support, while `road_repair_priority` uses `road_segment`. Mixing entity levels inside one ranked table should be avoided unless the report clearly separates the decision unit.
 
+Raw indicators used by a score should have an entity level compatible with the score entity. Derived scores can be reused only when the producing score has the same entity level. For example, an admin-area rescue score may use an admin-area `need_severity` derived score, but a road-segment repair score should not silently use admin-area indicators.
+
 Examples of action-specific models include:
 
 - rescue priority;
@@ -342,6 +344,8 @@ Direction metadata tells the scoring code how to orient normalized values. For e
 
 Optional missing indicators use `renormalize_available_and_flag` in the baseline model. This means absent optional indicators are flagged, and available indicator weights are renormalized so a missing optional input does not mechanically lower the score. Missing required indicators remain explicit and can block row-level score computation.
 
+Component columns use normalized indicator values multiplied by their original configured weights. Final score columns may renormalize by row-level available weights when optional indicators are missing. Reports should show both component columns and the row-level available weight denominator where feasible.
+
 Warnings:
 
 - within-event normalization affects comparability across events;
@@ -409,6 +413,8 @@ The implementation also separates `model_completeness_flag` from `data_quality_f
 
 - `data_quality_flag` summarizes whether the row has enough observed input values for the score;
 - `model_completeness_flag` identifies whether the configured model was complete, optional indicators were missing, required indicators were missing, or the score was insufficient.
+
+The v0.1 `data_quality_flag` is still a completeness-based proxy. It is not a full assessment of data age, source reliability, spatial resolution, uncertainty, or validation status.
 
 Optional missing values should not imply low humanitarian need. They indicate that the model is less complete for that row or score family.
 

@@ -97,6 +97,12 @@ def test_config_validation_failure_for_unknown_indicators():
     config = deepcopy(config)
     value = config["scores"]["need_severity"]["weights"].pop("hazard_severity")
     config["scores"]["need_severity"]["weights"]["unknown_indicator"] = value
+    config["scores"]["need_severity"]["required_indicators"] = [
+        "unknown_indicator",
+        "exposed_population",
+        "vulnerability",
+        "lack_of_coping_capacity",
+    ]
 
     with pytest.raises(ConfigValidationError, match="not defined in catalog"):
         validate_priority_config(config)
@@ -108,6 +114,36 @@ def test_config_validation_failure_for_weights_not_summing_to_one():
     config["scores"]["need_severity"]["weights"]["hazard_severity"] = 0.50
 
     with pytest.raises(ConfigValidationError, match="sum to one"):
+        validate_priority_config(config)
+
+
+def test_derived_score_role_is_validated():
+    config = load_priority_config(CONFIG_PATH)
+
+    assert config["indicator_catalog"]["need_severity"]["role"] == "derived_score"
+    validate_priority_config(config)
+
+
+def test_config_validation_failure_for_incompatible_entity_level():
+    config = load_priority_config(CONFIG_PATH)
+    config = deepcopy(config)
+    config["indicator_catalog"]["vulnerability"]["entity_level"] = "road_segment"
+
+    with pytest.raises(ConfigValidationError, match="incompatible entity"):
+        validate_priority_config(config)
+
+
+def test_config_validation_failure_for_weight_declaration_mismatch():
+    config = load_priority_config(CONFIG_PATH)
+    config = deepcopy(config)
+    config["scores"]["need_severity"]["optional_indicators"] = []
+    config["scores"]["need_severity"]["required_indicators"] = [
+        "hazard_severity",
+        "exposed_population",
+        "lack_of_coping_capacity",
+    ]
+
+    with pytest.raises(ConfigValidationError, match="must match weights"):
         validate_priority_config(config)
 
 
@@ -171,6 +207,13 @@ def test_optional_missing_indicators_are_flagged_and_skipped():
     assert result["cash_need_score_model_completeness_flag"].iloc[0] == (
         "optional_missing"
     )
+    assert result["cash_priority_missing_optional_indicators"].iloc[0] == (
+        "livelihood_loss_proxy,delivery_feasibility"
+    )
+    assert result["cash_priority_data_quality_flag"].iloc[0] == "medium"
+    assert result["cash_priority_model_completeness_flag"].iloc[0] == (
+        "optional_missing"
+    )
 
 
 def test_optional_missing_values_renormalize_available_weights():
@@ -230,6 +273,45 @@ def test_cash_priority_keeps_need_and_feasibility_separate():
     ].iloc[0]
 
 
+def test_cash_priority_propagates_missing_feasibility_completeness():
+    config = load_priority_config(CONFIG_PATH)
+    df = _complete_priority_dataframe().drop(columns=["delivery_feasibility"])
+
+    result = compute_priority_scores(df, config)
+
+    assert result["cash_priority"].equals(result["cash_need_score"])
+    assert result["cash_priority_missing_optional_indicators"].iloc[0] == (
+        "delivery_feasibility"
+    )
+    assert result["cash_priority_data_quality_flag"].iloc[0] == "medium"
+    assert result["cash_priority_model_completeness_flag"].iloc[0] == (
+        "optional_missing"
+    )
+
+
+def test_road_repair_missing_optional_repair_difficulty_is_flagged():
+    config = load_priority_config(CONFIG_PATH)
+    df = _complete_priority_dataframe().drop(columns=["repair_difficulty"])
+
+    result = compute_priority_scores(df, config)
+
+    assert result["road_repair_priority"].notna().all()
+    assert result["road_repair_priority_missing_optional_indicators"].iloc[0] == (
+        "repair_difficulty"
+    )
+    assert result["road_repair_priority_model_completeness_flag"].iloc[0] == (
+        "optional_missing"
+    )
+
+
+def test_road_repair_missing_required_segment_length_column_raises():
+    config = load_priority_config(CONFIG_PATH)
+    df = _complete_priority_dataframe().drop(columns=["segment_length_km"])
+
+    with pytest.raises(MissingIndicatorError, match="segment_length_km"):
+        compute_priority_scores(df, config)
+
+
 def test_benefit_over_cost_with_zero_or_equal_costs_is_safe():
     config = load_priority_config(CONFIG_PATH)
     df = _complete_priority_dataframe()
@@ -243,6 +325,47 @@ def test_benefit_over_cost_with_zero_or_equal_costs_is_safe():
         result["road_repair_priority_benefit_index"]
     )
     assert result["road_repair_priority"].notna().all()
+
+
+def test_road_repair_epsilon_must_be_positive():
+    config = load_priority_config(CONFIG_PATH)
+    config = deepcopy(config)
+    config["scores"]["road_repair_priority"]["epsilon"] = 0
+    df = _complete_priority_dataframe()
+
+    with pytest.raises(ValueError, match="epsilon"):
+        compute_priority_scores(df, config)
+
+
+def test_road_repair_missing_aid_route_importance_renormalizes_benefit():
+    config = load_priority_config(CONFIG_PATH)
+    df = _complete_priority_dataframe().drop(columns=["aid_route_importance"])
+
+    result = compute_priority_scores(df, config)
+
+    assert result["road_repair_priority_benefit_row_weight_sum_used"].tolist() == [
+        0.8,
+        0.8,
+        0.8,
+    ]
+    assert result["road_repair_priority_benefit_index"].notna().all()
+    assert result["road_repair_priority_missing_optional_indicators"].iloc[0] == (
+        "aid_route_importance"
+    )
+
+
+def test_road_repair_required_cost_value_missing_does_not_create_high_priority():
+    config = load_priority_config(CONFIG_PATH)
+    df = _complete_priority_dataframe()
+    df.loc[2, "segment_length_km"] = None
+
+    result = compute_priority_scores(df, config)
+
+    assert pd.isna(result.loc[2, "road_repair_priority"])
+    assert result.loc[2, "road_repair_priority_missing_required_indicators"] == (
+        "segment_length_km"
+    )
+    assert result.loc[2, "road_repair_priority_data_quality_flag"] == "low"
 
 
 def test_score_entity_metadata_is_reported():

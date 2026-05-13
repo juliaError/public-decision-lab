@@ -74,3 +74,19 @@ This stage adds a scoring design document, a baseline flood scoring configuratio
 - `.venv/bin/python -m pytest` passed: 24 tests.
 - `.venv/bin/disaster-nowcaster run --aoi examples/sample_aoi.geojson --hazard examples/sample_flood_extent.geojson --roads examples/sample_roads.geojson --facilities examples/sample_facilities.geojson --admin examples/sample_admin_units.geojson --population examples/sample_population.tif --output outputs/demo_event --overwrite`
 - Checked that this revision does not add external APIs, satellite-data integration, validated-score claims, or official allocation claims.
+
+### v3 Pre-Merge Scoring Review Fixes
+
+- Added `derived_score` as a valid indicator role and updated `need_severity` catalog metadata.
+- Added entity-level compatibility validation across raw indicators, derived score references, and formula references.
+- Added validation that weighted score required and optional indicators exactly match the configured weight keys.
+- Fixed `cash_priority` propagation so missing or incomplete feasibility information is reflected in its missing optional indicators and completeness flags.
+- Clarified that component columns use original configured weights while final scores may use row-level available-weight renormalization.
+- Documented that v0.1 `data_quality_flag` is a completeness-based proxy, not a full data-quality assessment.
+- Strengthened road repair tests for missing optional repair difficulty, missing required segment length, equal cost terms, invalid epsilon, aid-route renormalization, and row-level missing required cost data.
+
+## v3 Verification
+
+- `PYTHONPYCACHEPREFIX=/private/tmp/disaster_nowcaster_pycache .venv/bin/python -m compileall src tests`
+- `.venv/bin/python -m pytest` passed: 33 tests.
+- `.venv/bin/disaster-nowcaster run --aoi examples/sample_aoi.geojson --hazard examples/sample_flood_extent.geojson --roads examples/sample_roads.geojson --facilities examples/sample_facilities.geojson --admin examples/sample_admin_units.geojson --population examples/sample_population.tif --output outputs/demo_event --overwrite`

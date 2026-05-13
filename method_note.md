@@ -61,7 +61,9 @@ Scores use explicit weights from YAML configuration files, with `configs/priorit
 
 Weights are normative choices, not scientific facts. They should be reviewed locally, documented in reports, and sensitivity-tested before operational use. Missing required indicators should block computation; optional missing indicators may be skipped only with explicit flags.
 
-Optional missing indicators are flagged and available weights are renormalized so missing optional data do not mechanically lower scores. The framework separates `data_quality_flag` from `model_completeness_flag` to distinguish row-level input gaps from model-configuration completeness.
+Optional missing indicators are flagged and available weights are renormalized so missing optional data do not mechanically lower scores. Component columns use normalized indicator values multiplied by the original configured weight, while final scores may be divided by row-level available weight sums when optional indicators are missing. The framework separates `data_quality_flag` from `model_completeness_flag` to distinguish row-level input gaps from model-configuration completeness.
+
+The v0.1 `data_quality_flag` is a completeness-based proxy only. It does not yet assess data age, source reliability, spatial resolution, measurement error, or validation status.
 
 Feasibility is not the same as need. The cash model separates `cash_need_score`, `cash_feasibility_score`, and `cash_priority` so delivery feasibility is reported as a component and warning rather than silently suppressing humanitarian need.
 

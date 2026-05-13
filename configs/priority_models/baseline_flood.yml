@@ -89,7 +89,7 @@ indicator_catalog:
     concept: "Computed area-level likely humanitarian need severity score."
     entity_level: admin_area
     direction: higher_is_worse
-    role: exposure
+    role: derived_score
     unit: "score_0_to_1"
     interpretation_note: "Derived decision-support index; not a verified needs classification."
     sensitivity_privacy_note: "Should be reviewed alongside source indicators and uncertainty."
