@@ -97,7 +97,7 @@ Priority scoring is configurable and action-specific. The repository includes a 
 
 Scores are decision-support indices, not official allocation rules. Default weights are illustrative baseline settings only; users should adapt weights to local objectives, constraints, data quality, and stakeholder review. Exposure does not equal confirmed damage, and all priority outputs must be locally validated before use.
 
-The first scoring framework supports separate score families for need severity, lifeline disruption, rescue review, cash-transfer support, health support, and road repair review. The design rationale is documented in `priority_model_design.md`.
+The first scoring framework supports separate score families for need severity, lifeline disruption, rescue review, cash-transfer support, health support, and road repair review. Score weights are configurable, indicator directions are explicit, and missing optional indicators are flagged while available weights are renormalized. Feasibility is reported separately from need so easier delivery does not silently redefine humanitarian severity. The design rationale is documented in `priority_model_design.md`.
 
 ## Tests
 

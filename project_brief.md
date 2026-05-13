@@ -8,7 +8,7 @@ In short:
 
 > This project does **not** reinvent disaster forecasting or disaster mapping. It translates existing disaster information into reproducible, decision-relevant impact and priority outputs.
 
-The prioritization layer should be evidence-informed, configurable, and transparent. Action-specific priority models are preferred over a single universal score because rescue review, cash-transfer support, road repair, health support, lifeline disruption, and general need-severity review have different objectives. Default weights are illustrative and must be locally reviewed before operational use.
+The prioritization layer should be evidence-informed, configurable, and transparent. Action-specific priority models are preferred over a single universal score because rescue review, cash-transfer support, road repair, health support, lifeline disruption, and general need-severity review have different objectives. Default weights are illustrative and must be locally reviewed before operational use. Indicator direction, entity level, missing-data behavior, and feasibility-versus-need distinctions should be explicit in configuration and reports.
 
 ---
 

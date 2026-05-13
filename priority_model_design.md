@@ -8,11 +8,15 @@ Disaster Impact Nowcaster therefore needs priority models that are transparent, 
 
 This framework is decision support, not an official allocation rule. Exposure is not confirmed damage. Priority scores are not truth. Human review, local validation, and institutional accountability are required before operational decisions are made.
 
+The v0.1 scoring framework produces relative within-event ranking indices. A high score means "higher review priority relative to other entities in this event under this configuration." It does not mean absolute humanitarian severity, confirmed damage, or validated caseload. Cross-event comparison requires separate calibration and validation.
+
 ## 2. Why a Single Universal Priority Score Is Wrong
 
 Different response actions have different objective functions. A search-and-rescue review may prioritize time criticality, isolation, exposed population, and distress signals. A cash-transfer review may prioritize exposed households, poverty or vulnerability, delivery feasibility, and exclusion risk. A road-repair review may prioritize reconnection benefit relative to repair difficulty. A health-support review may prioritize exposed population, affected health facilities, low alternative access, and medically vulnerable groups.
 
 A single universal score would hide these tradeoffs and could imply that one ranking answers all operational questions. The project should instead support action-specific priority indices, each with explicit indicators, weights, missing-data rules, and interpretation notes.
+
+Each score must also declare its entity level. The baseline flood model uses `admin_area` for need severity, lifeline disruption, rescue review, cash review, and health support, while `road_repair_priority` uses `road_segment`. Mixing entity levels inside one ranked table should be avoided unless the report clearly separates the decision unit.
 
 Examples of action-specific models include:
 
@@ -157,7 +161,7 @@ Example variables: access status, operational presence, functioning payment chan
 
 Possible sources: logistics data, partner presence, road network status, payment-provider coverage.
 
-Limitations: feasibility can change quickly and may include sensitive operational information.
+Limitations: feasibility can change quickly and may include sensitive operational information. Feasibility is not need. If feasibility is blended into a priority score without care, assistance can become biased toward easy-to-reach areas even when harder-to-reach areas have greater humanitarian need.
 
 ### Response cost or difficulty
 
@@ -255,6 +259,14 @@ Suggested dimensions:
 
 This is a targeting-support index, not a final beneficiary list. Cash targeting requires program rules, consent, protection review, local validation, and complaints or appeals mechanisms.
 
+The baseline implementation separates:
+
+- `cash_need_score`: exposure, vulnerability, and livelihood-disruption review;
+- `cash_feasibility_score`: operational delivery feasibility, reported separately;
+- `cash_priority`: a review score that follows need and carries feasibility as a component and warning.
+
+Delivery feasibility must not silently suppress humanitarian need. If users want to combine need and feasibility for an operational workplan, that choice should be made explicitly in a local config and documented in the report.
+
 ### 5.5 Road Repair Priority Score
 
 Purpose: rank road segments or corridors for repair review.
@@ -275,6 +287,22 @@ Benefit can include:
 - reduction in travel time or isolation.
 
 Cost or difficulty can include repair difficulty, segment length, bridge status, terrain, or safety constraints. The v0.1 implementation uses a stable normalized benefit-over-cost index, not an engineering repair estimate.
+
+The baseline implementation keeps:
+
+- `road_repair_priority_benefit_index`;
+- `road_repair_priority_cost_index`;
+- `road_repair_priority_epsilon`;
+- final `road_repair_priority`.
+
+The formula is:
+
+```text
+road_repair_priority_s =
+  benefit_index_s / (epsilon + cost_index_s)
+```
+
+`epsilon` prevents division by zero. Equal or zero-valued cost indicators contribute no within-event cost ranking information; they do not prove repair cost is actually zero. Cost assumptions should remain visible in outputs and reports.
 
 ### 5.6 Health Support Priority Score
 
@@ -301,7 +329,18 @@ Default normalization options:
 - binary threshold indicators;
 - robust scaling, optional.
 
-The v0.1 implementation uses min-max normalization within event. If all non-missing values of an indicator are equal, the implementation returns `0.0`, documented as a neutral-zero convention that avoids inventing variation.
+The v0.1 implementation uses min-max normalization within event. If all non-missing values of an indicator are equal, the implementation returns `0.0` under the `zero_discriminatory_contribution` policy. This means the indicator provides no within-event ranking information. It does not mean the underlying risk, need, cost, or benefit is zero.
+
+Each indicator in the YAML catalog declares a direction:
+
+- `higher_is_worse`;
+- `higher_is_better`;
+- `higher_is_costlier`;
+- `lower_is_worse`.
+
+Direction metadata tells the scoring code how to orient normalized values. For example, lower access may be worse, while higher reconnection benefit is better and higher repair difficulty is costlier.
+
+Optional missing indicators use `renormalize_available_and_flag` in the baseline model. This means absent optional indicators are flagged, and available indicator weights are renormalized so a missing optional input does not mechanically lower the score. Missing required indicators remain explicit and can block row-level score computation.
 
 Warnings:
 
@@ -321,6 +360,8 @@ Weights must be:
 - never hidden inside code.
 
 Default baseline weights for v0.1 are illustrative settings only. They exist so users can run tests and demos, not because they are validated for any country, event, or organization.
+
+The default weights are not empirical estimates, universal norms, or evidence that one dimension is more important in all settings. They are placeholders for a transparent runnable model and must be replaced or reviewed for local operational use.
 
 The local-context override mechanism should be a user-supplied YAML file with the same schema as `configs/priority_models/baseline_flood.yml`. Action-specific weights should be reviewed separately for need severity, lifeline disruption, rescue review, cash support, health support, and road repair.
 
@@ -364,6 +405,13 @@ The v0.1 data-quality flag uses:
 
 Required missing indicators should block score computation unless an explicit local rule says otherwise. Optional missing indicators may be skipped with flags.
 
+The implementation also separates `model_completeness_flag` from `data_quality_flag`:
+
+- `data_quality_flag` summarizes whether the row has enough observed input values for the score;
+- `model_completeness_flag` identifies whether the configured model was complete, optional indicators were missing, required indicators were missing, or the score was insufficient.
+
+Optional missing values should not imply low humanitarian need. They indicate that the model is less complete for that row or score family.
+
 ## 10. Ethical Safeguards
 
 Priority scoring must follow these safeguards:
@@ -383,16 +431,22 @@ Priority scoring must follow these safeguards:
 v0.1 should implement:
 
 - config-driven scoring;
+- score-level entity metadata;
+- indicator catalog with concept, entity level, direction, role, units, interpretation notes, and sensitivity or privacy notes;
 - area-level need severity score;
 - area-level lifeline disruption score;
 - area-level rescue priority score;
-- area-level cash priority score;
+- separate area-level cash need score, cash feasibility score, and cash priority review score;
 - area-level health support priority score;
 - basic road repair score if road-segment data exist;
 - min-max normalization within event;
+- zero discriminatory contribution for equal-value indicators;
+- optional-missing renormalization with flags;
 - component columns for transparent weighted scores;
 - missing-indicator flags;
 - data-quality flags;
+- model-completeness flags;
+- config validation for weights, indicators, directions, entity levels, and formula names;
 - no live field reports yet;
 - no personal data;
 - no automatic triggers.

@@ -57,8 +57,12 @@ The project now supports configurable score families rather than one universal p
 - health support priority;
 - road repair review priority.
 
-Scores use explicit weights from YAML configuration files, with `configs/priority_models/baseline_flood.yml` as an illustrative baseline. The implementation normalizes indicators within the event using min-max normalization. If all non-missing indicator values are equal, the normalized value is `0.0` so the model does not invent variation.
+Scores use explicit weights from YAML configuration files, with `configs/priority_models/baseline_flood.yml` as an illustrative baseline. The YAML config includes an indicator catalog with concept, entity level, direction, role, unit, interpretation note, and sensitivity or privacy note. The implementation normalizes indicators within the event using min-max normalization. If all non-missing indicator values are equal, the normalized value is `0.0` under the `zero_discriminatory_contribution` policy: the indicator provides no within-event ranking information, not zero underlying risk.
 
 Weights are normative choices, not scientific facts. They should be reviewed locally, documented in reports, and sensitivity-tested before operational use. Missing required indicators should block computation; optional missing indicators may be skipped only with explicit flags.
 
-Priority scores remain decision-support indices. They are not confirmed damage estimates, beneficiary lists, dispatch orders, or official allocation rules. Every score should be interpreted with data-quality flags, uncertainty notes, and local validation.
+Optional missing indicators are flagged and available weights are renormalized so missing optional data do not mechanically lower scores. The framework separates `data_quality_flag` from `model_completeness_flag` to distinguish row-level input gaps from model-configuration completeness.
+
+Feasibility is not the same as need. The cash model separates `cash_need_score`, `cash_feasibility_score`, and `cash_priority` so delivery feasibility is reported as a component and warning rather than silently suppressing humanitarian need.
+
+Priority scores remain decision-support indices. They are not confirmed damage estimates, beneficiary lists, dispatch orders, or official allocation rules. Every score should be interpreted with data-quality flags, model-completeness flags, uncertainty notes, and local validation.

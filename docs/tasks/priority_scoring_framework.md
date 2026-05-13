@@ -36,8 +36,10 @@ This stage adds a scoring design document, a baseline flood scoring configuratio
 
 - Default weights are illustrative baseline settings only and must remain editable in YAML.
 - Missing required indicators should not be silently imputed.
-- Equal-value normalization should use a documented neutral value so tests are deterministic.
+- Equal-value normalization should use a documented zero discriminatory contribution so tests are deterministic and users do not read it as zero underlying risk.
 - Scores are decision-support indices, not official allocation rules.
+- Optional missing indicators should be flagged and available weights should be renormalized by default.
+- Feasibility is not need; cash feasibility should be reported separately from cash need.
 
 ## Implementation Log
 
@@ -57,3 +59,18 @@ This stage adds a scoring design document, a baseline flood scoring configuratio
 - `.venv/bin/python -m pytest` passed: 13 tests.
 - `.venv/bin/disaster-nowcaster run --aoi examples/sample_aoi.geojson --hazard examples/sample_flood_extent.geojson --roads examples/sample_roads.geojson --facilities examples/sample_facilities.geojson --admin examples/sample_admin_units.geojson --population examples/sample_population.tif --output outputs/demo_event --overwrite`
 - Checked `outputs/demo_event/priority_areas.csv` and `outputs/demo_event/report.md` to confirm the existing demo path remains cautious and functional.
+
+### v2 Semantic Safety Revision
+
+- Strengthen YAML with an indicator catalog, score entity metadata, explicit indicator directions, model completeness flags, and optional-missing renormalization.
+- Add config validation for required keys, indicator catalog coverage, entity levels, directions, formulas, and weight sums.
+- Separate cash need, cash feasibility, and cash review score so delivery feasibility does not silently suppress humanitarian need.
+- Clarify road repair benefit-over-cost outputs and safe cost handling.
+- Expand tests for validation failures, direction handling, optional missing renormalization, row-level required missing values, road cost edge cases, score entity metadata, and data-quality versus model-completeness flags.
+
+## v2 Verification
+
+- `PYTHONPYCACHEPREFIX=/private/tmp/disaster_nowcaster_pycache .venv/bin/python -m compileall src tests`
+- `.venv/bin/python -m pytest` passed: 24 tests.
+- `.venv/bin/disaster-nowcaster run --aoi examples/sample_aoi.geojson --hazard examples/sample_flood_extent.geojson --roads examples/sample_roads.geojson --facilities examples/sample_facilities.geojson --admin examples/sample_admin_units.geojson --population examples/sample_population.tif --output outputs/demo_event --overwrite`
+- Checked that this revision does not add external APIs, satellite-data integration, validated-score claims, or official allocation claims.
